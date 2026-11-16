@@ -1,0 +1,2777 @@
+<!DOCTYPE html>
+<html lang="lt" data-theme="dark-gold" data-density="default" data-scale="md">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>GymPro Tracker V4.2 — Telegram Mini App</title>
+  <!-- Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            app: {
+              bg: 'var(--bg-primary)',
+              card: 'var(--bg-card)',
+              elevated: 'var(--bg-elevated)',
+              input: 'var(--bg-input)',
+              border: 'var(--border-color)',
+              text: 'var(--text-primary)',
+              muted: 'var(--text-muted)',
+              accent: 'var(--accent)',
+              accentHover: 'var(--accent-hover)',
+              accentSoft: 'var(--accent-soft)',
+              accentText: 'var(--accent-text)'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* 4 SPALVŲ TEMOS */
+    :root, [data-theme="dark-gold"] {
+      --bg-outer: #07090d;
+      --bg-primary: #0e1117;
+      --bg-card: #161b24;
+      --bg-elevated: #1e2430;
+      --bg-input: #252c3b;
+      --border-color: #2f384a;
+      --text-primary: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-soft: rgba(245, 158, 11, 0.14);
+      --accent-text: #0f172a;
+      --canvas-bg: #0e1117;
+      --canvas-card: #161b24;
+      --canvas-accent: #f59e0b;
+      --canvas-text: #f8fafc;
+      --canvas-muted: #94a3b8;
+    }
+
+    [data-theme="oled-black"] {
+      --bg-outer: #000000;
+      --bg-primary: #000000;
+      --bg-card: #0c0d10;
+      --bg-elevated: #14161b;
+      --bg-input: #1b1e25;
+      --border-color: #262a34;
+      --text-primary: #ffffff;
+      --text-muted: #8e96a4;
+      --accent: #eab308;
+      --accent-hover: #ca8a04;
+      --accent-soft: rgba(234, 179, 8, 0.14);
+      --accent-text: #09090b;
+      --canvas-bg: #050507;
+      --canvas-card: #111318;
+      --canvas-accent: #eab308;
+      --canvas-text: #ffffff;
+      --canvas-muted: #8e96a4;
+    }
+
+    [data-theme="midnight-blue"] {
+      --bg-outer: #060b12;
+      --bg-primary: #0b1320;
+      --bg-card: #111c2e;
+      --bg-elevated: #17253d;
+      --bg-input: #1e304d;
+      --border-color: #294066;
+      --text-primary: #f0f9ff;
+      --text-muted: #93c5fd;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --accent-soft: rgba(56, 189, 248, 0.15);
+      --accent-text: #04131c;
+      --canvas-bg: #0b1320;
+      --canvas-card: #121e33;
+      --canvas-accent: #38bdf8;
+      --canvas-text: #f0f9ff;
+      --canvas-muted: #93c5fd;
+    }
+
+    [data-theme="clean-light"] {
+      --bg-outer: #e2e8f0;
+      --bg-primary: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-elevated: #f1f5f9;
+      --bg-input: #e2e8f0;
+      --border-color: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-muted: #475569;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-soft: rgba(37, 99, 235, 0.1);
+      --accent-text: #ffffff;
+      --canvas-bg: #f8fafc;
+      --canvas-card: #ffffff;
+      --canvas-accent: #2563eb;
+      --canvas-text: #0f172a;
+      --canvas-muted: #475569;
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg-outer);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      overscroll-behavior-y: none;
+      margin: 0;
+    }
+
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type='number'] {
+      -moz-appearance: textfield;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 9999px;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slideUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* UI MASTELIS (Šrifto ir laukelių dydis) */
+    html[data-scale="sm"] {
+      font-size: 14.4px; /* 90% */
+    }
+    html[data-scale="md"] {
+      font-size: 16px;   /* 100% */
+    }
+    html[data-scale="lg"] {
+      font-size: 17.9px; /* 112% */
+    }
+
+    /* IŠDĖSTYMO TANKIS: KOMPAKTIŠKAS (COMPACT) */
+    html[data-density="compact"] #workout-container {
+      padding-top: 0.5rem;
+      padding-left: 0.625rem;
+      padding-right: 0.625rem;
+    }
+    html[data-density="compact"] #workout-container > * + * {
+      margin-top: 0.45rem !important;
+    }
+    html[data-density="compact"] .ex-card {
+      padding: 0.625rem 0.75rem !important;
+      border-radius: 0.875rem !important;
+    }
+    html[data-density="compact"] .ex-sets-wrap {
+      margin-top: 0.45rem !important;
+    }
+    html[data-density="compact"] .ex-sets-wrap > * + * {
+      margin-top: 0.3rem !important;
+    }
+    html[data-density="compact"] .ex-set-row {
+      padding: 0.2rem 0.35rem !important;
+      border-radius: 0.65rem !important;
+    }
+    html[data-density="compact"] .set-val-input,
+    html[data-density="compact"] .cardio-min-input {
+      height: 2.25rem !important;
+    }
+    html[data-density="compact"] .set-done-btn,
+    html[data-density="compact"] .cardio-toggle-btn {
+      height: 2.25rem !important;
+    }
+    html[data-density="compact"] .drop-val-input {
+      height: 2.1rem !important;
+    }
+    html[data-density="compact"] .ex-last-banner {
+      margin-top: 0.4rem !important;
+      padding: 0.32rem 0.55rem !important;
+    }
+    html[data-density="compact"] .ex-note-text {
+      margin-top: 0.2rem !important;
+      line-height: 1.3 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center">
+
+  <!-- Pagrindinis mobilus aplikacijos konteineris -->
+  <div id="app-shell" class="w-full max-w-[480px] min-h-screen bg-app-bg text-app-text flex flex-col relative shadow-2xl border-x border-app-border/60 transition-colors duration-200">
+
+    <!-- ==================== 1 SKILTIS: TRENIRUOTĖ ==================== -->
+    <div id="view-workout" class="view-section flex-1 flex flex-col">
+      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 pt-3 pb-3">
+        <div class="flex items-center justify-between gap-2 mb-2.5">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-app-accent shrink-0"></span>
+              <h1 id="header-user-title" class="text-base font-extrabold tracking-tight truncate">GymPro Tracker</h1>
+            </div>
+            <p id="header-active-day-name" class="text-[11px] text-app-muted truncate mt-0.5">1 Diena: Visas kūnas</p>
+          </div>
+
+          <!-- Sesijos valdymas (Pradėti / Aktyvus laikmatis) -->
+          <div id="session-header-control" class="shrink-0"></div>
+        </div>
+
+        <!-- Dienų perjungiklis -->
+        <div id="day-tabs-container" class="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar"></div>
+
+        <!-- Progreso juosta -->
+        <div class="mt-2.5 flex items-center gap-2.5">
+          <div class="flex-1 h-1.5 bg-app-input rounded-full overflow-hidden">
+            <div id="progress-bar" class="h-full bg-app-accent transition-all duration-300 rounded-full" style="width: 0%"></div>
+          </div>
+          <span id="progress-text" class="text-[11px] font-bold text-app-muted tabular-nums">0 / 0</span>
+        </div>
+      </header>
+
+      <!-- Aktyvios treniruotės sesijos juosta (Laikas + Tonažas) -->
+      <div id="active-session-banner" class="hidden mx-3.5 mt-3 px-3.5 py-2.5 rounded-2xl bg-app-accentSoft border border-app-accent/35 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
+          <div>
+            <div class="text-[10px] font-extrabold text-app-accent uppercase tracking-wider">Pradėta: <span id="session-start-label">--:--</span></div>
+            <div class="text-xs text-app-muted mt-0.5">Tonažas: <strong id="session-live-tonnage" class="text-app-text tabular-nums">0 kg</strong></div>
+          </div>
+        </div>
+        <div id="session-elapsed-label" class="text-lg font-black tabular-nums text-app-text">00:00:00</div>
+      </div>
+
+      <!-- Pratimų kortelių sąrašas -->
+      <main id="workout-container" class="flex-1 px-3.5 pt-3 pb-44 space-y-3 overflow-y-auto"></main>
+
+      <!-- Švarus poilsio laikmatis -->
+      <div id="rest-timer-bar" class="hidden fixed bottom-[134px] left-1/2 -translate-x-1/2 w-full max-w-[464px] px-3 z-40 animate-slide-up">
+        <div class="bg-app-elevated border-2 border-app-accent rounded-2xl p-3 shadow-2xl flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-xl bg-app-accentSoft flex items-center justify-center text-app-accent font-black text-sm">
+              ⏱
+            </div>
+            <div>
+              <div class="text-[10px] uppercase tracking-wider font-extrabold text-app-accent">Poilsis</div>
+              <div id="timer-display" class="text-xl font-black tabular-nums leading-none mt-0.5">01:30</div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="timer-minus" class="min-h-[40px] px-2.5 rounded-xl bg-app-input hover:opacity-80 active:scale-95 text-xs font-bold transition">-15s</button>
+            <button type="button" id="timer-plus" class="min-h-[40px] px-2.5 rounded-xl bg-app-input hover:opacity-80 active:scale-95 text-xs font-bold transition">+15s</button>
+            <button type="button" id="timer-skip" class="min-h-[40px] px-3 rounded-xl bg-app-accent text-app-accentText active:scale-95 text-xs font-extrabold transition">Praleisti</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Apatinis treniruotės užbaigimo skydelis -->
+      <div class="fixed bottom-[64px] left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-app-bg/95 backdrop-blur-md border-t border-app-border px-3.5 py-2.5 z-30">
+        <div class="flex gap-2">
+          <button id="reset-checks-btn" type="button" title="Nuimti pažymėtas varneles" class="min-h-[46px] px-3.5 rounded-xl bg-app-card border border-app-border text-app-muted hover:text-app-text active:scale-95 transition flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button id="finish-workout-btn" type="button" class="flex-1 min-h-[46px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText font-extrabold text-sm shadow-lg transition active:scale-[0.98] flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span>Baigti ir išsaugoti</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2 SKILTIS: PROGRESAS IR PR ==================== -->
+    <div id="view-progress" class="view-section hidden flex-1 flex flex-col">
+      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 py-3.5">
+        <h1 class="text-base font-extrabold">Progreso grafikai ir PR</h1>
+        <p class="text-xs text-app-muted mt-0.5">Asmeniniai rekordai, 1RM ir svorių augimo kreivė</p>
+      </header>
+
+      <main class="flex-1 px-3.5 pt-3.5 pb-24 space-y-4 overflow-y-auto">
+        <!-- Pratimo pasirinkimas -->
+        <div class="bg-app-card border border-app-border rounded-2xl p-3.5">
+          <label for="progress-exercise-select" class="block text-[11px] font-extrabold uppercase tracking-wider text-app-muted mb-1.5">Pasirinkite pratimą analizei</label>
+          <select id="progress-exercise-select" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-bold focus:border-app-accent focus:outline-none"></select>
+        </div>
+
+        <!-- 3 PR Statistikos kortelės -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-app-card border border-app-border rounded-2xl p-3 text-center">
+            <span class="text-[10px] font-extrabold uppercase text-app-muted block">Maks. svoris (PR)</span>
+            <span id="pr-max-weight" class="text-base font-black text-app-accent mt-1 block tabular-nums">—</span>
+          </div>
+          <div class="bg-app-card border border-app-border rounded-2xl p-3 text-center">
+            <span class="text-[10px] font-extrabold uppercase text-app-muted block">Apskaič. 1RM</span>
+            <span id="pr-est-1rm" class="text-base font-black text-emerald-400 mt-1 block tabular-nums">—</span>
+          </div>
+          <div class="bg-app-card border border-app-border rounded-2xl p-3 text-center">
+            <span class="text-[10px] font-extrabold uppercase text-app-muted block">Pask. tonažas</span>
+            <span id="pr-last-tonnage" class="text-base font-black mt-1 block tabular-nums">—</span>
+          </div>
+        </div>
+
+        <!-- Interaktyvus SVG kreivės grafikas -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-sm font-extrabold">Darbinio svorio ir 1RM dinamika</h2>
+              <p class="text-[11px] text-app-muted">Spustelėkite ant taško grafike detalesnei informacijai</p>
+            </div>
+            <div class="flex items-center gap-3 text-[10px] font-bold shrink-0">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-app-accent inline-block"></span>Maks. kg</span>
+              <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>1RM</span>
+            </div>
+          </div>
+
+          <div id="progress-chart-box" class="w-full overflow-hidden rounded-xl bg-app-elevated/60 border border-app-border/70 p-2"></div>
+
+          <div id="progress-point-detail" class="hidden px-3 py-2 rounded-xl bg-app-accentSoft border border-app-accent/30 text-xs flex justify-between items-center">
+            <span id="point-detail-date" class="font-bold text-app-muted"></span>
+            <span id="point-detail-vals" class="font-extrabold text-app-accent"></span>
+          </div>
+        </section>
+
+        <!-- Paskutinių treniruočių išklotinė šiam pratimui -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-2.5">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-app-muted">Pratimo rezultatų istorija</h3>
+          <div id="progress-exercise-logs" class="space-y-2 text-xs"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- ==================== 3 SKILTIS: REDAKTORIUS ==================== -->
+    <div id="view-editor" class="view-section hidden flex-1 flex flex-col">
+      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 py-3.5">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h1 class="text-base font-extrabold">Programos Redaktorius</h1>
+            <p class="text-xs text-app-muted mt-0.5">Pridėkite dienas, pratimus, serijas ir Drop-Set</p>
+          </div>
+          <button id="add-day-btn" type="button" class="min-h-[40px] px-3 rounded-xl bg-app-accent text-app-accentText font-extrabold text-xs flex items-center gap-1.5 active:scale-95 transition">
+            <span>+ Nauja diena</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="editor-container" class="flex-1 px-3.5 pt-3.5 pb-24 space-y-4 overflow-y-auto"></main>
+    </div>
+
+    <!-- ==================== 4 SKILTIS: ISTORIJA ==================== -->
+    <div id="view-history" class="view-section hidden flex-1 flex flex-col">
+      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 py-3.5 flex items-center justify-between">
+        <div>
+          <h1 class="text-base font-extrabold">Treniruočių Istorija</h1>
+          <p class="text-xs text-app-muted mt-0.5">Atliktos treniruotės ir failų eksportas</p>
+        </div>
+        <span id="history-count-badge" class="px-2.5 py-1 rounded-lg bg-app-accentSoft text-app-accent text-xs font-extrabold">0</span>
+      </header>
+
+      <main id="history-container" class="flex-1 px-3.5 pt-3.5 pb-24 space-y-3 overflow-y-auto"></main>
+    </div>
+
+    <!-- ==================== 5 SKILTIS: NUSTATYMAI ==================== -->
+    <div id="view-settings" class="view-section hidden flex-1 flex flex-col">
+      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 py-3.5">
+        <h1 class="text-base font-extrabold">Nustatymai</h1>
+        <p class="text-xs text-app-muted mt-0.5">Profilis, išdėstymas, mastelis, garsas, temos ir pagrindinis ekranas</p>
+      </header>
+
+      <main class="flex-1 px-3.5 pt-4 pb-24 space-y-4 overflow-y-auto">
+        <!-- Vartotojo vardas arba pasveikinimo tekstas -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-2.5">
+          <div>
+            <h2 class="text-sm font-extrabold">Tavo vardas arba pasveikinimas</h2>
+            <p class="text-xs text-app-muted mt-0.5">Rodoma programėlės viršuje ir PNG ataskaitoje. Palikus tuščią — naudojamas Telegram vardas.</p>
+          </div>
+          <div class="flex gap-2">
+            <input id="custom-greeting-input" type="text" maxlength="40" placeholder="Pvz.: Sveikas, Edgarai arba Edgaras"
+              class="flex-1 min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
+            <button id="clear-greeting-btn" type="button" title="Išvalyti ir naudoti numatytąjį"
+              class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold text-app-muted hover:text-app-text active:scale-95 transition">
+              ✕
+            </button>
+          </div>
+        </section>
+
+        <!-- Pridėti į pagrindinį telefono ekraną (1-Click + Android / iOS Gidas) -->
+        <section class="bg-app-card border border-app-accent/40 rounded-2xl p-4 space-y-3">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">📲</span>
+                <h2 class="text-sm font-extrabold">Pridėti į pagrindinį ekraną</h2>
+              </div>
+              <p class="text-xs text-app-muted mt-0.5">Paleiskite programėlę vienu paspaudimu tiesiai iš telefono darbalaukio.</p>
+            </div>
+            <span id="homescreen-status-badge" class="hidden px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold shrink-0">Pridėta ✓</span>
+          </div>
+
+          <button id="add-to-homescreen-btn" type="button" class="w-full min-h-[46px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText font-extrabold text-xs shadow transition active:scale-[0.98] flex items-center justify-center gap-2">
+            <span>➕ Pridėti programėlę į pagrindinį ekraną</span>
+          </button>
+
+          <!-- Išskleidžiama Android ir iOS instrukcija -->
+          <div class="pt-1 border-t border-app-border/70">
+            <button id="toggle-homescreen-guide-btn" type="button" class="w-full py-1.5 flex items-center justify-between text-xs font-extrabold text-app-accent hover:opacity-85 transition">
+              <span>📖 Kaip pridėti rankiniu būdu? (Android / iOS gidas)</span>
+              <span id="guide-chevron" class="transition-transform duration-200">▼</span>
+            </button>
+
+            <div id="homescreen-guide-panel" class="hidden mt-2.5 space-y-2.5 text-xs">
+              <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1.5">
+                <div class="font-extrabold text-emerald-400 flex items-center gap-1.5">
+                  <span>🤖 Android (Xiaomi / POCO, Samsung ir kt.)</span>
+                </div>
+                <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-app-muted leading-relaxed">
+                  <li><strong class="text-app-text">Suteikite leidimą:</strong> Telefono <strong class="text-app-text">Nustatymai → Programos → Telegram → Kiti leidimai</strong> (arba <em>Parametrai</em>) → įjunkite <strong class="text-amber-400">„Pagrindinio ekrano nuorodos“</strong> (be šio leidimo sistema neįkels ikonos).</li>
+                  <li>Grįžkite čia ir spauskite <strong class="text-app-text">„Pridėti programėlę į pagrindinį ekraną“</strong> (arba viršuje <strong class="text-app-text">⋮ → Pridėti į pagrindinį ekraną</strong>).</li>
+                </ol>
+              </div>
+
+              <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1.5">
+                <div class="font-extrabold text-sky-400 flex items-center gap-1.5">
+                  <span>🍎 iOS (iPhone)</span>
+                </div>
+                <p class="text-[11px] text-app-muted leading-relaxed">iPhone nereikia atskirų leidimų, tačiau Apple reikalauja patvirtinti per Safari:</p>
+                <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-app-muted leading-relaxed">
+                  <li>Spauskite mygtuką viršuje (arba <strong class="text-app-text">⋯ → Add to Home Screen</strong>).</li>
+                  <li>Atsidariusiame lange apačioje spauskite <strong class="text-app-text">Bendrinti (Share ikona ↑) → „Pridėti prie pradžios ekrano“ (Add to Home Screen)</strong>.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Išdėstymo tankis ir UI mastelis -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-4">
+          <div>
+            <h2 class="text-sm font-extrabold">Išdėstymo tankis</h2>
+            <p class="text-xs text-app-muted mt-0.5 mb-2.5">Kompaktiškas režimas sumažina tarpus, kad ekrane tilptų daugiau pratimų.</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" data-density-val="default" class="density-btn min-h-[44px] p-2.5 rounded-xl border text-left transition active:scale-95">
+                <span class="text-xs font-extrabold block">Standartinis</span>
+                <span class="text-[10px] text-app-muted block mt-0.5">Erdvesnės kortelės</span>
+              </button>
+              <button type="button" data-density-val="compact" class="density-btn min-h-[44px] p-2.5 rounded-xl border text-left transition active:scale-95">
+                <span class="text-xs font-extrabold block">Kompaktiškas</span>
+                <span class="text-[10px] text-app-muted block mt-0.5">Daugiau telpa ekrane</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-app-border/70">
+            <h2 class="text-sm font-extrabold">Šrifto ir laukelių dydis (Mastelis)</h2>
+            <p class="text-xs text-app-muted mt-0.5 mb-2.5">Pritaikykite teksto ir įvedimo laukelių dydį pagal savo telefoną.</p>
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-scale-val="sm" class="scale-btn min-h-[44px] p-2 rounded-xl border text-center transition active:scale-95">
+                <span class="text-xs font-extrabold block">Mažas</span>
+                <span class="text-[10px] text-app-muted block">90%</span>
+              </button>
+              <button type="button" data-scale-val="md" class="scale-btn min-h-[44px] p-2 rounded-xl border text-center transition active:scale-95">
+                <span class="text-xs font-extrabold block">Vidutinis</span>
+                <span class="text-[10px] text-app-muted block">100%</span>
+              </button>
+              <button type="button" data-scale-val="lg" class="scale-btn min-h-[44px] p-2 rounded-xl border text-center transition active:scale-95">
+                <span class="text-xs font-extrabold block">Didelis</span>
+                <span class="text-[10px] text-app-muted block">112%</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Garso signalas po poilsio (skirta ausinėms) -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-extrabold">Garso signalas po poilsio</h2>
+              <p class="text-xs text-app-muted mt-0.5">Dvigubas tonas į ausines, kai baigiasi poilsio laikas</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+              <input id="sound-enabled-toggle" type="checkbox" class="sr-only peer" />
+              <div class="w-12 h-7 bg-app-input peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-app-accent"></div>
+            </label>
+          </div>
+          <button id="test-sound-btn" type="button" class="w-full min-h-[42px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-extrabold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-2">
+            <span>🔔 Patikrinti garsą</span>
+          </button>
+        </section>
+
+        <!-- 4 Temų pasirinkimas -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4">
+          <h2 class="text-sm font-extrabold mb-1">Programėlės tema</h2>
+          <p class="text-xs text-app-muted mb-3">Spalvų schema pritaikoma ir eksportuojamai PNG kortelei</p>
+          <div class="grid grid-cols-2 gap-2.5" id="theme-selector">
+            <button type="button" data-theme-val="dark-gold" class="theme-card p-3 rounded-xl border text-left transition active:scale-95">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#f59e0b]"></span>
+                <span class="text-xs font-extrabold">Dark Gold</span>
+              </div>
+              <span class="text-[11px] text-app-muted block">Tamsi + aukso akcentai</span>
+            </button>
+
+            <button type="button" data-theme-val="oled-black" class="theme-card p-3 rounded-xl border text-left transition active:scale-95">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#eab308]"></span>
+                <span class="text-xs font-extrabold">OLED Black</span>
+              </div>
+              <span class="text-[11px] text-app-muted block">Giliai juoda + geltona</span>
+            </button>
+
+            <button type="button" data-theme-val="midnight-blue" class="theme-card p-3 rounded-xl border text-left transition active:scale-95">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#38bdf8]"></span>
+                <span class="text-xs font-extrabold">Midnight Blue</span>
+              </div>
+              <span class="text-[11px] text-app-muted block">Tamsiai mėlyna + žydra</span>
+            </button>
+
+            <button type="button" data-theme-val="clean-light" class="theme-card p-3 rounded-xl border text-left transition active:scale-95">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-3.5 h-3.5 rounded-full bg-[#2563eb]"></span>
+                <span class="text-xs font-extrabold">Clean Light</span>
+              </div>
+              <span class="text-[11px] text-app-muted block">Šviesi dienos tema</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Dalijimasis programa -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
+          <div>
+            <h2 class="text-sm font-extrabold">Dalijimasis programa (JSON)</h2>
+            <p class="text-xs text-app-muted mt-0.5">Nukopijuok savo programą draugui arba įkelk gautą šabloną.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="export-program-json-btn" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition">
+              📋 Kopijuoti JSON
+            </button>
+            <button id="open-import-modal-btn" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition">
+              📥 Įkelti JSON
+            </button>
+          </div>
+        </section>
+
+        <!-- Atstatyti bazinę programą -->
+        <section class="bg-app-card border border-red-500/30 rounded-2xl p-4 space-y-3">
+          <div>
+            <h2 class="text-sm font-extrabold text-red-400">Atstatyti bazinę 3 dienų programą</h2>
+            <p class="text-xs text-app-muted mt-0.5">Grąžina pradinę 3 dienų programą su kardio apšilimu ir atvėsimu (istorija išliks).</p>
+          </div>
+          <button id="reset-default-program-btn" type="button" class="w-full min-h-[44px] px-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-400 text-xs font-extrabold hover:bg-red-500/25 active:scale-95 transition">
+            Atstatyti pradinę programą
+          </button>
+        </section>
+      </main>
+    </div>
+
+    <!-- ==================== APATINĖ 5 SKILČIŲ NAVIGACIJA ==================== -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] h-[64px] bg-app-card border-t border-app-border grid grid-cols-5 z-40">
+      <button type="button" data-nav="workout" class="nav-btn flex flex-col items-center justify-center gap-1 text-app-accent transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span class="text-[10px] font-extrabold">Treniruotė</span>
+      </button>
+
+      <button type="button" data-nav="progress" class="nav-btn flex flex-col items-center justify-center gap-1 text-app-muted transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        <span class="text-[10px] font-bold">Progresas</span>
+      </button>
+
+      <button type="button" data-nav="editor" class="nav-btn flex flex-col items-center justify-center gap-1 text-app-muted transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        <span class="text-[10px] font-bold">Redaktorius</span>
+      </button>
+
+      <button type="button" data-nav="history" class="nav-btn flex flex-col items-center justify-center gap-1 text-app-muted transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-[10px] font-bold">Istorija</span>
+      </button>
+
+      <button type="button" data-nav="settings" class="nav-btn flex flex-col items-center justify-center gap-1 text-app-muted transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-[10px] font-bold">Nustatymai</span>
+      </button>
+    </nav>
+
+    <!-- ==================== MODALAS: PRATIMO REDAGAVIMAS / PRIDĖJIMAS ==================== -->
+    <div id="exercise-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-app-card border border-app-border rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="ex-modal-title" class="text-base font-extrabold">Pratimo nustatymai</h3>
+          <button id="close-ex-modal" type="button" class="p-2 rounded-xl bg-app-input text-app-muted hover:text-app-text">✕</button>
+        </div>
+
+        <form id="exercise-form" class="space-y-3.5">
+          <input type="hidden" id="ex-form-day-idx" />
+          <input type="hidden" id="ex-form-ex-idx" />
+
+          <div>
+            <label class="block text-xs font-bold text-app-muted mb-1">Pratimo pavadinimas *</label>
+            <input id="ex-form-name" type="text" required placeholder="Pvz., Štangos spaudimas kampu" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
+          </div>
+
+          <label class="flex items-center justify-between p-3 rounded-xl bg-app-elevated border border-app-border cursor-pointer">
+            <div>
+              <span class="text-xs font-extrabold block">🏃 Kardio pratimas (trukmė minutėmis)</span>
+              <span class="text-[11px] text-app-muted">Vietoj svorio ir serijų rodomas minučių laukelis</span>
+            </div>
+            <input id="ex-form-is-cardio" type="checkbox" class="w-5 h-5 accent-amber-500 rounded" />
+          </label>
+
+          <div id="strength-fields-group" class="space-y-3.5">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-bold text-app-muted mb-1">Serijų skaičius (1–6)</label>
+                <select id="ex-form-sets" class="w-full min-h-[44px] px-3 rounded-xl bg-app-input border border-app-border text-sm font-bold focus:border-app-accent focus:outline-none">
+                  <option value="1">1 serija</option>
+                  <option value="2">2 serijos</option>
+                  <option value="3" selected>3 serijos</option>
+                  <option value="4">4 serijos</option>
+                  <option value="5">5 serijos</option>
+                  <option value="6">6 serijos</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-app-muted mb-1">Poilsis (sekundėmis)</label>
+                <input id="ex-form-rest" type="number" min="0" max="600" step="15" value="90" class="w-full min-h-[44px] px-3 rounded-xl bg-app-input border border-app-border text-sm font-bold focus:border-app-accent focus:outline-none" />
+              </div>
+            </div>
+
+            <label class="flex items-center justify-between p-3 rounded-xl bg-app-elevated border border-app-border cursor-pointer">
+              <div>
+                <span class="text-xs font-extrabold block">🔥 Drop-Set (-30 %) paskutinėje serijoje</span>
+                <span class="text-[11px] text-app-muted">Prideda papildomą eilutę iki maksimalaus deginimo</span>
+              </div>
+              <input id="ex-form-dropset" type="checkbox" class="w-5 h-5 accent-amber-500 rounded" />
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-app-muted mb-1">Tikslas (serijos / kartai / min.)</label>
+            <input id="ex-form-target" type="text" placeholder="Pvz., 3 ser. po 8-10 pak. arba 10 min." class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-app-muted mb-1">Technikos pastaba (palikus tuščią — nerodoma)</label>
+            <input id="ex-form-note" type="text" placeholder="Pvz., 1 sek. pauzė susitraukimo taške" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm focus:border-app-accent focus:outline-none" />
+          </div>
+
+          <div class="pt-2 flex gap-2">
+            <button type="button" id="cancel-ex-modal" class="flex-1 min-h-[46px] rounded-xl bg-app-input text-xs font-bold">Atšaukti</button>
+            <button type="submit" class="flex-1 min-h-[46px] rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold">Išsaugoti pratimą</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODALAS: DIENOS PRIDĖJIMAS / PERVADINIMAS ==================== -->
+    <div id="day-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-app-card border border-app-border rounded-2xl w-full max-w-[400px] p-5 shadow-2xl">
+        <h3 id="day-modal-title" class="text-base font-extrabold mb-3">Treniruotės diena</h3>
+        <form id="day-form" class="space-y-3">
+          <input type="hidden" id="day-form-idx" />
+          <div>
+            <label class="block text-xs font-bold text-app-muted mb-1">Dienos pavadinimas *</label>
+            <input id="day-form-title" type="text" required placeholder="Pvz., 4 Diena: Pečiai ir rankos" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-app-muted mb-1">Trumpas aprašymas</label>
+            <input id="day-form-subtitle" type="text" placeholder="Pvz., Pečių juosta, bicepsas, tricepsas" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm focus:border-app-accent focus:outline-none" />
+          </div>
+          <div class="pt-2 flex gap-2">
+            <button type="button" id="cancel-day-modal" class="flex-1 min-h-[44px] rounded-xl bg-app-input text-xs font-bold">Atšaukti</button>
+            <button type="submit" class="flex-1 min-h-[44px] rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold">Išsaugoti</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ==================== MODALAS: TRENIRUOTĖS SUVESTINĖ IR EKSPORTAS ==================== -->
+    <div id="summary-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-app-card border border-app-border rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] p-5 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-2 pb-3 border-b border-app-border">
+          <div>
+            <div class="flex flex-wrap items-center gap-1.5 mb-1">
+              <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider">Išsaugota ✓</span>
+              <span id="summary-pr-badge" class="hidden px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[10px] font-extrabold uppercase tracking-wider">🏆 Naujas PR!</span>
+            </div>
+            <h3 id="summary-day-title" class="text-base font-black">1 Diena: Visas kūnas</h3>
+            <p id="summary-date-line" class="text-xs text-app-muted mt-0.5"></p>
+          </div>
+          <button id="close-summary-modal" type="button" class="p-2 rounded-xl bg-app-input text-app-muted hover:text-app-text">✕</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 my-3.5">
+          <div class="bg-app-elevated border border-app-border rounded-xl p-2.5 text-center">
+            <span class="text-[10px] text-app-muted font-bold uppercase block">Laikas</span>
+            <span id="summary-time-range" class="text-xs font-extrabold mt-0.5 block tabular-nums">18:00–19:05</span>
+          </div>
+          <div class="bg-app-elevated border border-app-border rounded-xl p-2.5 text-center">
+            <span class="text-[10px] text-app-muted font-bold uppercase block">Trukmė</span>
+            <span id="summary-duration" class="text-xs font-extrabold text-app-accent mt-0.5 block tabular-nums">65 min.</span>
+          </div>
+          <div class="bg-app-elevated border border-app-border rounded-xl p-2.5 text-center">
+            <span class="text-[10px] text-app-muted font-bold uppercase block">Tonažas</span>
+            <span id="summary-tonnage" class="text-xs font-extrabold text-emerald-400 mt-0.5 block tabular-nums">4 850 kg</span>
+          </div>
+        </div>
+
+        <div id="summary-pr-list-box" class="hidden mb-3.5 p-3 rounded-xl bg-app-accentSoft border border-app-accent/35">
+          <div class="text-[11px] font-extrabold text-app-accent uppercase tracking-wider mb-1">🏆 Pasiekti nauji asmeniniai rekordai:</div>
+          <div id="summary-pr-items" class="text-xs font-bold space-y-0.5"></div>
+        </div>
+
+        <div id="summary-exercises-list" class="space-y-1.5 bg-app-elevated/60 border border-app-border rounded-xl p-3 max-h-44 overflow-y-auto mb-4 text-xs"></div>
+
+        <div class="space-y-2">
+          <p class="text-[11px] font-bold text-app-muted uppercase tracking-wider">Atsisiųsti treniruotės ataskaitą:</p>
+          <button id="summary-dl-png" type="button" class="w-full min-h-[46px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText font-extrabold text-xs flex items-center justify-center gap-2 transition active:scale-[0.98]">
+            <span>🖼️ Atsisiųsti PNG kortelę</span>
+          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="summary-dl-csv" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5">
+              <span>📊 CSV (Excel)</span>
+            </button>
+            <button id="summary-dl-txt" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5">
+              <span>📄 TXT failas</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODALAS: IMPORTUOTI JSON ==================== -->
+    <div id="import-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-app-card border border-app-border rounded-2xl w-full max-w-[400px] p-5 shadow-2xl">
+        <h3 class="text-base font-extrabold mb-1">Įkelti programos šabloną</h3>
+        <p class="text-xs text-app-muted mb-3">Įklijuok nukopijuotą programos JSON tekstą:</p>
+        <textarea id="import-json-textarea" rows="5" placeholder='[{"id":"day_1", ...}]' class="w-full p-3 rounded-xl bg-app-input border border-app-border text-xs font-mono focus:border-app-accent focus:outline-none"></textarea>
+        <div class="pt-3 flex gap-2">
+          <button type="button" id="cancel-import-modal" class="flex-1 min-h-[44px] rounded-xl bg-app-input text-xs font-bold">Atšaukti</button>
+          <button type="button" id="confirm-import-btn" class="flex-1 min-h-[44px] rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold">Įkelti</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MODALAS: PATVIRTINIMAS ==================== -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-app-card border border-app-border rounded-2xl w-full max-w-[360px] p-5 shadow-2xl">
+        <h3 id="confirm-title" class="text-base font-extrabold">Patvirtinimas</h3>
+        <p id="confirm-text" class="text-xs text-app-muted mt-1.5 leading-relaxed"></p>
+        <div class="grid grid-cols-2 gap-2.5 mt-5">
+          <button id="confirm-cancel" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-input text-xs font-bold">Atšaukti</button>
+          <button id="confirm-ok" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold">Patvirtinti</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TOAST PRANEŠIMAS ==================== -->
+    <div id="toast" class="pointer-events-none fixed top-16 left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] z-50 opacity-0 transition-all duration-200 -translate-y-2">
+      <div class="bg-app-elevated border border-app-accent/60 text-app-text px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5">
+        <span class="w-2 h-2 rounded-full bg-app-accent shrink-0"></span>
+        <div id="toast-message" class="text-xs font-bold leading-snug"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    'use strict';
+
+    /**
+     * 1. BAZINĖ 3 DIENŲ PROGRAMA (NUMATYTOJI)
+     */
+    const DEFAULT_PROGRAM = [
+      {
+        id: 'day_1',
+        title: '1 Diena: Visas kūnas',
+        subtitle: 'Full Body • Jėgos akcentas ir baziniai judesiai',
+        exercises: [
+          { id: 'd1_e0', name: 'Elipsinis treniruoklis (Bendras apšilimas)', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Bendras viso kūno apšilimas prieš jėgos pratimus.' },
+          { id: 'd1_e1', name: 'Kojų stūmimas (Leg Press)', type: 'strength', setsCount: 3, restSec: 150, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Pėdos per vidurį. Prieš tai 2–3 lengvos apšilimo serijas.' },
+          { id: 'd1_e2', name: 'Krūtinės stūmimas treniruoklyje', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Tolygus, kontroliuojamas judesys be atmetimo apačioje.' },
+          { id: 'd1_e3', name: 'Viršutinė trauka plačiai (Lat Pulldown)', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Traukti sprogstamai, svorį grąžinti lėtai per 3 sek.' },
+          { id: 'd1_e4', name: 'Pečių spaudimas (Smith arba staklės)', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Stabili nugaros padėtis, pilna judesio kontrolė.' },
+          { id: 'd1_e5', name: 'Bicepsas su tiesia štanga', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Pilnai ištiesti rankas apačioje, nesiūbuoti liemeniu.' },
+          { id: 'd1_e6', name: 'Tricepsas staklėse (Seated Dip)', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Lengvas korpuso pasvirimas į priekį aktyvuoja ir krūtinės apačią.' },
+          { id: 'd1_e7', name: 'Presas treniruoklyje', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 12-15 pak.', note: '1 sek. pauzė (izometrija) maksimalaus susitraukimo taške.' },
+          { id: 'd1_e8', name: 'Takelis arba horizontalus dviratis (Atvėsimas)', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Ramus ėjimas arba minimas treniruotės užbaigimui.' }
+        ]
+      },
+      {
+        id: 'day_2',
+        title: '2 Diena: Kojos ir korpusas',
+        subtitle: 'Legs & Core • Šlaunys, sėdmenys, blauzdos',
+        exercises: [
+          { id: 'd2_e0', name: 'Elipsinis treniruoklis (Bendras apšilimas)', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Bendras viso kūno apšilimas prieš kojų treniruotę.' },
+          { id: 'd2_e1', name: 'Kojų stūmimas (Leg Press)', type: 'strength', setsCount: 3, restSec: 150, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Pėdos aukštai ir plačiai (akcentas sėdmenims ir galinei daliai).' },
+          { id: 'd2_e2', name: 'Kojų lenkimas atsigulus', type: 'strength', setsCount: 3, restSec: 90, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Dubuo tvirtai prispaustas prie atramos, nekelti klubų.' },
+          { id: 'd2_e3', name: 'Kojų tiesimas staklėse', type: 'strength', setsCount: 3, restSec: 90, hasDropSet: true, target: '3 ser. po 10-12 pak. + DROP-SET (-30%)', note: '3-ia serija – Drop-Set (-30 % svorio iki visiško deginimo).' },
+          { id: 'd2_e4', name: 'Sėdmenų atvedimas staklėse', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Kontroliuoti judesį abiem kryptimis, nenaudoti inercijos.' },
+          { id: 'd2_e5', name: 'Blauzdos (Mašinoje arba Leg Press)', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 10-15 pak.', note: 'Pilna judesio amplitudė, 1 sek. pauzė apatiniame ištempimo taške.' },
+          { id: 'd2_e6', name: 'Nugaros apačia (Atsilenkimai suolelyje)', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 12-15 pak.', note: 'Lėtas, tolygus judesys (jei spaudžia šonkaulius – keisti į „Superman“).' },
+          { id: 'd2_e7', name: 'Liemens sukimas (Torso rotacija)', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 12-15/pusei', note: 'Sukti tolygiai, be staigių trūktelėjimų ar inercijos.' },
+          { id: 'd2_e8', name: 'Takelis arba horizontalus dviratis (Atvėsimas)', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Ramus ėjimas arba minimas treniruotės užbaigimui.' }
+        ]
+      },
+      {
+        id: 'day_3',
+        title: '3 Diena: Viršutinė dalis',
+        subtitle: 'Upper Body • Krūtinė, nugara, pečiai ir rankos',
+        exercises: [
+          { id: 'd3_e0', name: 'Elipsinis treniruoklis (Bendras apšilimas)', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Bendras viso kūno apšilimas.' },
+          { id: 'd3_e1', name: 'Stūmimas kampu (Incline Press)', type: 'strength', setsCount: 3, restSec: 150, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Suoliukas arba staklės. Prieš tai 2–3 lengvos apšilimo serijos.' },
+          { id: 'd3_e2', name: 'Horizontali trauka sėdint', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: '1–2 sek. pauzė suvedus mentis, kai rankena prie pilvo.' },
+          { id: 'd3_e3', name: 'Krūtinės suvedimas trosais iš viršaus', type: 'strength', setsCount: 3, restSec: 90, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Akcentas apatinei krūtinės daliai: ištempti ir suspausti.' },
+          { id: 'd3_e4', name: 'Viršutinė trauka siaurai (V-rankena)', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Krūtinė iškelta; traukti žemyn prie krūtinės viršaus.' },
+          { id: 'd3_e5', name: 'Šoninių pečių kėlimas staklėse (Lateral Raise)', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Kelti iki pečių linijos, kontroliuoti leidimą žemyn.' },
+          { id: 'd3_e6', name: 'Galinių pečių treniruoklis (Reverse Fly)', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Alkūnės aukštai, vienoje horizontalioje linijoje su pečiais.' },
+          { id: 'd3_e7', name: 'Bicepsas su trosu („Plaktukas“)', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Naudoti virvės rankeną, alkūnes laikyti vienoje vietoje.' },
+          { id: 'd3_e8', name: 'Tricepsas su trosu iš viršaus', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Alkūnes laikyti tvirtai priglaustas prie šonų viso judesio metu.' },
+          { id: 'd3_e9', name: 'Takelis arba horizontalus dviratis (Atvėsimas)', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Ramus ėjimas arba minimas treniruotės užbaigimui.' }
+        ]
+      }
+    ];
+
+    function cloneDefaultProgram() {
+      return JSON.parse(JSON.stringify(DEFAULT_PROGRAM));
+    }
+
+    /**
+     * 2. SAUGUS HTML EKRANAVIMAS (XSS / SULAUŽYTO HTML APSAUGA)
+     */
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * 3. TELEGRAM WEBAPP IR SAUGI DUOMENŲ SAUGYKLA SU AUTOMATINE MIGRACIJA
+     */
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+    let tgUser = { id: 'guest', firstName: '' };
+
+    try {
+      if (tg) {
+        if (typeof tg.ready === 'function') tg.ready();
+        if (typeof tg.expand === 'function') tg.expand();
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          tgUser = {
+            id: String(tg.initDataUnsafe.user.id || 'guest'),
+            firstName: String(tg.initDataUnsafe.user.first_name || '').trim()
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Telegram SDK init warning:', e);
+    }
+
+    const USER_PREFIX = `gympro_v4_${tgUser.id}_`;
+    const LEGACY_V3_PREFIX = `gym_v3_${tgUser.id}_`;
+    const LEGACY_V2_PREFIX = `gym_v2_${tgUser.id}_`;
+
+    const KEYS = {
+      PROGRAM: `${USER_PREFIX}program`,
+      LAST_RECORDS: `${USER_PREFIX}last_records`,
+      DRAFT: `${USER_PREFIX}draft`,
+      HISTORY: `${USER_PREFIX}history`,
+      ACTIVE_DAY_IDX: `${USER_PREFIX}active_day`,
+      SESSION_START: `${USER_PREFIX}session_start`,
+      THEME: `${USER_PREFIX}theme`,
+      SOUND_ENABLED: `${USER_PREFIX}sound_enabled`,
+      DENSITY: `${USER_PREFIX}density`,
+      SCALE: `${USER_PREFIX}scale`,
+      CUSTOM_GREETING: `${USER_PREFIX}custom_greeting`
+    };
+
+    function isValidProgramSchema(data) {
+      if (!Array.isArray(data) || data.length === 0) return false;
+      return data.every(day =>
+        day &&
+        typeof day === 'object' &&
+        typeof day.title === 'string' &&
+        Array.isArray(day.exercises) &&
+        day.exercises.every(ex => ex && typeof ex === 'object' && typeof ex.name === 'string')
+      );
+    }
+
+    function normalizeProgram(data) {
+      if (!isValidProgramSchema(data)) return cloneDefaultProgram();
+      return data.map((day, dIdx) => ({
+        id: typeof day.id === 'string' && day.id ? day.id : `day_${Date.now()}_${dIdx}`,
+        title: String(day.title || `${dIdx + 1} Diena`),
+        subtitle: typeof day.subtitle === 'string' ? day.subtitle : '',
+        exercises: day.exercises.map((ex, eIdx) => ({
+          id: typeof ex.id === 'string' && ex.id ? ex.id : `ex_${Date.now()}_${dIdx}_${eIdx}`,
+          name: String(ex.name || 'Pratimas'),
+          type: ex.type === 'cardio' ? 'cardio' : 'strength',
+          setsCount: Math.min(6, Math.max(1, parseInt(ex.setsCount, 10) || 3)),
+          restSec: Math.max(0, parseInt(ex.restSec, 10) || 0),
+          hasDropSet: Boolean(ex.hasDropSet),
+          target: typeof ex.target === 'string' ? ex.target : '',
+          note: typeof ex.note === 'string' ? ex.note : ''
+        }))
+      }));
+    }
+
+    const SafeStore = {
+      readLocal(key) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw === null || raw === undefined || raw === '') return undefined;
+          return JSON.parse(raw);
+        } catch (err) {
+          console.warn('Corrupted localStorage key removed:', key, err);
+          try { localStorage.removeItem(key); } catch (e) {}
+          return undefined;
+        }
+      },
+
+      writeLocal(key, val) {
+        try {
+          localStorage.setItem(key, JSON.stringify(val));
+        } catch (err) {
+          console.warn('localStorage write error:', err);
+        }
+      },
+
+      get(key, fallback, legacySuffix = null) {
+        const val = this.readLocal(key);
+        if (val !== undefined) return val;
+
+        if (legacySuffix) {
+          const v3Val = this.readLocal(`${LEGACY_V3_PREFIX}${legacySuffix}`);
+          if (v3Val !== undefined) {
+            this.writeLocal(key, v3Val);
+            return v3Val;
+          }
+          const v2Val = this.readLocal(`${LEGACY_V2_PREFIX}${legacySuffix}`);
+          if (v2Val !== undefined) {
+            this.writeLocal(key, v2Val);
+            return v2Val;
+          }
+        }
+        return fallback;
+      },
+
+      set(key, val) {
+        this.writeLocal(key, val);
+        try {
+          if (tg && tg.CloudStorage && typeof tg.CloudStorage.setItem === 'function') {
+            const serialized = JSON.stringify(val);
+            if (serialized.length <= 4096) {
+              tg.CloudStorage.setItem(key, serialized);
+            }
+          }
+        } catch (err) {}
+      },
+
+      syncCloud(onDone) {
+        try {
+          if (!tg || !tg.CloudStorage || typeof tg.CloudStorage.getItems !== 'function') {
+            return;
+          }
+          const allKeys = Object.values(KEYS);
+          tg.CloudStorage.getItems(allKeys, (err, items) => {
+            if (err || !items) return;
+            let updated = false;
+            allKeys.forEach(k => {
+              if (items[k]) {
+                try {
+                  const parsed = JSON.parse(items[k]);
+                  if (k === KEYS.PROGRAM && !isValidProgramSchema(parsed)) return;
+                  if (k === KEYS.HISTORY && !Array.isArray(parsed)) return;
+                  if ((k === KEYS.LAST_RECORDS || k === KEYS.DRAFT) && (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed))) return;
+                  this.writeLocal(k, parsed);
+                  updated = true;
+                } catch (parseErr) {
+                  console.warn('CloudStorage parse skipped for', k);
+                }
+              }
+            });
+            if (updated && typeof onDone === 'function') onDone();
+          });
+        } catch (err) {
+          console.warn('CloudStorage sync error:', err);
+        }
+      }
+    };
+
+    /**
+     * 4. PROGRAMOS BŪSENA (STATE)
+     */
+    let program = normalizeProgram(SafeStore.get(KEYS.PROGRAM, null, 'program'));
+    let lastRecords = SafeStore.get(KEYS.LAST_RECORDS, {}, 'last_records');
+    if (typeof lastRecords !== 'object' || lastRecords === null || Array.isArray(lastRecords)) lastRecords = {};
+
+    let draft = SafeStore.get(KEYS.DRAFT, {}, 'draft');
+    if (typeof draft !== 'object' || draft === null || Array.isArray(draft)) draft = {};
+
+    let history = SafeStore.get(KEYS.HISTORY, [], 'history');
+    if (!Array.isArray(history)) history = [];
+
+    let activeDayIdx = parseInt(SafeStore.get(KEYS.ACTIVE_DAY_IDX, 0, 'active_day'), 10);
+    if (isNaN(activeDayIdx) || activeDayIdx < 0 || activeDayIdx >= program.length) activeDayIdx = 0;
+
+    let sessionStartTimestamp = SafeStore.get(KEYS.SESSION_START, null, 'session_start');
+    if (typeof sessionStartTimestamp !== 'number' || isNaN(sessionStartTimestamp)) sessionStartTimestamp = null;
+
+    let currentTheme = SafeStore.get(KEYS.THEME, 'dark-gold', 'theme');
+    let soundEnabled = Boolean(SafeStore.get(KEYS.SOUND_ENABLED, true, 'sound_enabled'));
+    let currentDensity = SafeStore.get(KEYS.DENSITY, 'default', 'density');
+    let currentScale = SafeStore.get(KEYS.SCALE, 'md', 'scale');
+    let customGreeting = String(SafeStore.get(KEYS.CUSTOM_GREETING, '', 'custom_greeting') || '').trim();
+
+    let restTimerInterval = null;
+    let restRemainingSec = 0;
+
+    function getHeaderGreetingText() {
+      if (customGreeting.length > 0) {
+        const lower = customGreeting.toLowerCase();
+        const hasGreetingWord = /^(sveik|labas|hey|hi|hello|yo|privet|sport)/i.test(lower);
+        return hasGreetingWord ? customGreeting : `Sveikas, ${customGreeting} 💪`;
+      }
+      if (tgUser.firstName) {
+        return `Sveikas, ${tgUser.firstName}`;
+      }
+      return 'Sveikas, sportininke';
+    }
+
+    function getAthleteDisplayName() {
+      if (customGreeting.length > 0) {
+        return customGreeting.replace(/^sveik[a-zį]*[,\s!]*/i, '').trim() || customGreeting;
+      }
+      return tgUser.firstName || 'Sportininkas';
+    }
+
+    function updateHeaderGreetingUI() {
+      const headerEl = document.getElementById('header-user-title');
+      if (headerEl) headerEl.textContent = getHeaderGreetingText();
+    }
+
+    updateHeaderGreetingUI();
+
+    /**
+     * 5. WEB AUDIO API (GARSO SIGNALAS AUSINĖMS)
+     */
+    let audioCtx = null;
+
+    function unlockAudioContext() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        if (!audioCtx) audioCtx = new AudioContextClass();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      } catch (e) {}
+    }
+
+    function playDoubleBeep(forceTest = false) {
+      if (!forceTest && !soundEnabled) return;
+      try {
+        unlockAudioContext();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+        const scheduleTone = (startTime, freq) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, startTime);
+
+          gain.gain.setValueAtTime(0.001, startTime);
+          gain.gain.exponentialRampToValueAtTime(0.32, startTime + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.16);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(startTime);
+          osc.stop(startTime + 0.17);
+        };
+
+        scheduleTone(now, 880);
+        scheduleTone(now + 0.22, 1174.66);
+      } catch (e) {
+        console.warn('Audio playback skipped:', e);
+      }
+    }
+
+    /**
+     * 6. TEMŲ, TANKIO IR MASTELIO VALDYMAS
+     */
+    const VALID_THEMES = ['dark-gold', 'oled-black', 'midnight-blue', 'clean-light'];
+
+    function applyTheme(themeKey) {
+      currentTheme = VALID_THEMES.includes(themeKey) ? themeKey : 'dark-gold';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      SafeStore.set(KEYS.THEME, currentTheme);
+
+      document.querySelectorAll('.theme-card').forEach(btn => {
+        const active = btn.dataset.themeVal === currentTheme;
+        btn.className = `theme-card p-3 rounded-xl border text-left transition active:scale-95 ${
+          active
+            ? 'bg-app-accentSoft border-app-accent ring-1 ring-app-accent'
+            : 'bg-app-elevated border-app-border hover:opacity-90'
+        }`;
+      });
+    }
+
+    function applyDensity(densityVal) {
+      currentDensity = densityVal === 'compact' ? 'compact' : 'default';
+      document.documentElement.setAttribute('data-density', currentDensity);
+      SafeStore.set(KEYS.DENSITY, currentDensity);
+
+      document.querySelectorAll('.density-btn').forEach(btn => {
+        const active = btn.dataset.densityVal === currentDensity;
+        btn.className = `density-btn min-h-[44px] p-2.5 rounded-xl border text-left transition active:scale-95 ${
+          active
+            ? 'bg-app-accentSoft border-app-accent ring-1 ring-app-accent'
+            : 'bg-app-elevated border-app-border hover:opacity-90'
+        }`;
+      });
+    }
+
+    function applyScale(scaleVal) {
+      currentScale = ['sm', 'md', 'lg'].includes(scaleVal) ? scaleVal : 'md';
+      document.documentElement.setAttribute('data-scale', currentScale);
+      SafeStore.set(KEYS.SCALE, currentScale);
+
+      document.querySelectorAll('.scale-btn').forEach(btn => {
+        const active = btn.dataset.scaleVal === currentScale;
+        btn.className = `scale-btn min-h-[44px] p-2 rounded-xl border text-center transition active:scale-95 ${
+          active
+            ? 'bg-app-accentSoft border-app-accent ring-1 ring-app-accent'
+            : 'bg-app-elevated border-app-border hover:opacity-90'
+        }`;
+      });
+    }
+
+    applyTheme(currentTheme);
+    applyDensity(currentDensity);
+    applyScale(currentScale);
+
+    /**
+     * 7. PAGALBINĖS FUNKCIJOS (TOAST, CONFIRM, LAIKAS, TONAŽAS)
+     */
+    let toastTimeout = null;
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = msg;
+      el.classList.remove('opacity-0', '-translate-y-2');
+      el.classList.add('opacity-100', 'translate-y-0');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        el.classList.add('opacity-0', '-translate-y-2');
+        el.classList.remove('opacity-100', 'translate-y-0');
+      }, 2800);
+    }
+
+    function haptic(style = 'light') {
+      try {
+        if (tg && tg.HapticFeedback) {
+          if (style === 'success') tg.HapticFeedback.notificationOccurred('success');
+          else tg.HapticFeedback.impactOccurred(style);
+        }
+      } catch (e) {}
+    }
+
+    let confirmCallback = null;
+    function showConfirm(title, text, onOk) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-text').textContent = text;
+      confirmCallback = onOk;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('confirm-cancel').addEventListener('click', () => {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      confirmCallback = null;
+    });
+    document.getElementById('confirm-ok').addEventListener('click', () => {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      if (typeof confirmCallback === 'function') confirmCallback();
+      confirmCallback = null;
+    });
+
+    function formatClock(ts) {
+      const d = new Date(ts);
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function formatElapsed(ms) {
+      const totalSec = Math.max(0, Math.floor(ms / 1000));
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function ensureDraftForExercise(ex) {
+      if (!draft[ex.id] || typeof draft[ex.id] !== 'object') draft[ex.id] = {};
+      if (ex.type === 'cardio') {
+        if (typeof draft[ex.id].minutes !== 'string') draft[ex.id].minutes = '10';
+        if (typeof draft[ex.id].done !== 'boolean') draft[ex.id].done = false;
+      } else {
+        const count = Math.min(6, Math.max(1, parseInt(ex.setsCount, 10) || 3));
+        if (!Array.isArray(draft[ex.id].sets)) draft[ex.id].sets = [];
+        while (draft[ex.id].sets.length < count) {
+          draft[ex.id].sets.push({ w: '', r: '', done: false });
+        }
+        if (draft[ex.id].sets.length > count) {
+          draft[ex.id].sets = draft[ex.id].sets.slice(0, count);
+        }
+        if (ex.hasDropSet && (!draft[ex.id].dropSet || typeof draft[ex.id].dropSet !== 'object')) {
+          draft[ex.id].dropSet = { w: '', r: '' };
+        }
+      }
+      return draft[ex.id];
+    }
+
+    function formatLastRecordText(ex) {
+      const rec = lastRecords[ex.id];
+      if (!rec) return null;
+      if (ex.type === 'cardio') {
+        return rec.done ? `Atlikta (${rec.minutes || 10} min.)` : null;
+      }
+      if (!Array.isArray(rec.sets) || rec.sets.length === 0) return null;
+      const parts = rec.sets
+        .filter(s => s && (s.w !== '' || s.r !== ''))
+        .map(s => `${s.w || '?'}kg×${s.r || '?'}`);
+      if (parts.length === 0) return null;
+      let text = parts.join(', ');
+      if (ex.hasDropSet && rec.dropSet && (rec.dropSet.w || rec.dropSet.r)) {
+        text += ` + Drop: ${rec.dropSet.w || '?'}kg×${rec.dropSet.r || '?'}`;
+      }
+      return text;
+    }
+
+    function calculateCurrentDayTonnage() {
+      const day = program[activeDayIdx];
+      if (!day) return 0;
+      let vol = 0;
+      day.exercises.forEach(ex => {
+        if (ex.type === 'strength') {
+          const d = ensureDraftForExercise(ex);
+          d.sets.forEach(s => {
+            const w = parseFloat(s.w) || 0;
+            const r = parseInt(s.r, 10) || 0;
+            vol += w * r;
+          });
+          if (ex.hasDropSet && d.dropSet) {
+            const dw = parseFloat(d.dropSet.w) || 0;
+            const dr = parseInt(d.dropSet.r, 10) || 0;
+            vol += dw * dr;
+          }
+        }
+      });
+      return Math.round(vol);
+    }
+
+    /**
+     * 8. TRENIRUOTĖS SESIJOS LAIKMATIS (PRADŽIA / PABAIGA)
+     */
+    function renderSessionBanner() {
+      const headerCtrl = document.getElementById('session-header-control');
+      const banner = document.getElementById('active-session-banner');
+
+      if (!sessionStartTimestamp) {
+        banner.classList.add('hidden');
+        headerCtrl.innerHTML = `
+          <button type="button" id="start-session-btn" class="min-h-[36px] px-3 rounded-xl bg-app-accentSoft border border-app-accent/40 text-app-accent text-xs font-extrabold flex items-center gap-1.5 active:scale-95 transition">
+            <span>▶ Pradėti</span>
+          </button>
+        `;
+        document.getElementById('start-session-btn').addEventListener('click', () => {
+          unlockAudioContext();
+          sessionStartTimestamp = Date.now();
+          SafeStore.set(KEYS.SESSION_START, sessionStartTimestamp);
+          haptic('medium');
+          renderSessionBanner();
+          showToast(`Treniruotė pradėta (${formatClock(sessionStartTimestamp)})`);
+        });
+      } else {
+        banner.classList.remove('hidden');
+        document.getElementById('session-start-label').textContent = formatClock(sessionStartTimestamp);
+        document.getElementById('session-elapsed-label').textContent = formatElapsed(Date.now() - sessionStartTimestamp);
+        document.getElementById('session-live-tonnage').textContent = `${calculateCurrentDayTonnage()} kg`;
+
+        headerCtrl.innerHTML = `
+          <button type="button" id="cancel-session-btn" title="Atšaukti sesijos laikmatį" class="min-h-[34px] px-2.5 rounded-xl bg-app-card border border-app-border text-app-muted text-[11px] font-bold hover:text-red-400 transition">
+            Atšaukti laiką
+          </button>
+        `;
+        document.getElementById('cancel-session-btn').addEventListener('click', () => {
+          sessionStartTimestamp = null;
+          SafeStore.set(KEYS.SESSION_START, null);
+          renderSessionBanner();
+          showToast('Treniruotės laikmatis sustabdytas');
+        });
+      }
+    }
+
+    setInterval(() => {
+      if (sessionStartTimestamp) {
+        const el = document.getElementById('session-elapsed-label');
+        if (el) el.textContent = formatElapsed(Date.now() - sessionStartTimestamp);
+      }
+    }, 1000);
+
+    /**
+     * 9. TRENIRUOTĖS LANGAS (TAB 1)
+     */
+    function renderDayTabs() {
+      const container = document.getElementById('day-tabs-container');
+      container.innerHTML = '';
+      program.forEach((day, idx) => {
+        const isActive = idx === activeDayIdx;
+        const shortLabel = day.title.split(':')[0] || `${idx + 1} Diena`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.dataset.dayIdx = String(idx);
+        btn.className = `day-tab-btn shrink-0 px-3.5 py-2 rounded-xl text-xs font-extrabold transition active:scale-95 ${
+          isActive
+            ? 'bg-app-accent text-app-accentText shadow'
+            : 'bg-app-card text-app-muted border border-app-border hover:text-app-text'
+        }`;
+        btn.textContent = shortLabel;
+        container.appendChild(btn);
+      });
+    }
+
+    function updateWorkoutProgress() {
+      const day = program[activeDayIdx];
+      if (!day) return;
+      let total = 0;
+      let done = 0;
+
+      day.exercises.forEach(ex => {
+        const d = ensureDraftForExercise(ex);
+        if (ex.type === 'cardio') {
+          total += 1;
+          if (d.done) done += 1;
+        } else {
+          d.sets.forEach(s => {
+            total += 1;
+            if (s.done) done += 1;
+          });
+        }
+      });
+
+      const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+      document.getElementById('progress-text').textContent = `${done} / ${total}`;
+
+      if (sessionStartTimestamp) {
+        document.getElementById('session-live-tonnage').textContent = `${calculateCurrentDayTonnage()} kg`;
+      }
+    }
+
+    function renderWorkoutView() {
+      if (!program || program.length === 0) {
+        program = cloneDefaultProgram();
+        activeDayIdx = 0;
+      }
+      if (activeDayIdx >= program.length) activeDayIdx = 0;
+
+      const day = program[activeDayIdx];
+      document.getElementById('header-active-day-name').textContent = `${day.title}${day.subtitle ? ' • ' + day.subtitle : ''}`;
+
+      renderSessionBanner();
+      renderDayTabs();
+
+      const container = document.getElementById('workout-container');
+      container.innerHTML = '';
+
+      if (!day.exercises || day.exercises.length === 0) {
+        container.innerHTML = `
+          <div class="bg-app-card border border-app-border rounded-2xl p-6 text-center mt-4">
+            <p class="text-sm font-bold mb-1">Šioje dienoje dar nėra pratimų</p>
+            <p class="text-xs text-app-muted mb-3">Atsidarykite „Redaktorius“ skiltį apačioje ir pridėkite pratimus.</p>
+          </div>
+        `;
+        updateWorkoutProgress();
+        return;
+      }
+
+      day.exercises.forEach((ex, exIdx) => {
+        const exDraft = ensureDraftForExercise(ex);
+        const lastText = formatLastRecordText(ex);
+        const prevRec = lastRecords[ex.id];
+        const hasPrevStrength = ex.type === 'strength' && prevRec && Array.isArray(prevRec.sets) && prevRec.sets.some(s => s && (s.w !== '' || s.r !== ''));
+
+        const isAllDone = ex.type === 'cardio'
+          ? exDraft.done
+          : exDraft.sets.length > 0 && exDraft.sets.every(s => s.done);
+
+        const card = document.createElement('section');
+        card.className = `ex-card rounded-2xl border p-3.5 transition-all ${
+          isAllDone
+            ? 'bg-app-card/75 border-emerald-500/40'
+            : 'bg-app-card border-app-border'
+        }`;
+
+        // Technikos pastabos patikrinimas: jei tuščia arba tik tarpai — išvis nerodome
+        const cleanNote = (typeof ex.note === 'string') ? ex.note.trim() : '';
+        const noteHtml = cleanNote.length > 0
+          ? `<p class="ex-note-text text-xs text-app-muted mt-1.5 leading-relaxed">${escapeHtml(cleanNote)}</p>`
+          : '';
+
+        let html = `
+          <div class="flex items-start gap-2.5">
+            <span class="w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center shrink-0 mt-0.5 ${
+              ex.type === 'cardio'
+                ? 'bg-teal-500/15 text-teal-400 border border-teal-500/30'
+                : isAllDone
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-app-accentSoft text-app-accent border border-app-accent/30'
+            }">${exIdx}</span>
+            <div class="min-w-0 flex-1">
+              <h2 class="text-[15px] font-extrabold leading-snug">${escapeHtml(ex.name)}</h2>
+              <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                ${ex.target ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-app-elevated text-app-muted border border-app-border">${escapeHtml(ex.target)}</span>` : ''}
+                ${ex.type === 'strength' && ex.restSec ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-app-elevated text-app-muted border border-app-border">Poilsis: ${ex.restSec}s</span>` : ''}
+                ${ex.hasDropSet ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-red-500/15 text-red-400 border border-red-500/30">🔥 DROP-SET (-30%)</span>` : ''}
+              </div>
+              ${noteHtml}
+            </div>
+          </div>
+        `;
+
+        if (lastText) {
+          html += `
+            <div class="ex-last-banner mt-2.5 px-2.5 py-2 rounded-xl bg-app-elevated border border-app-accent/25 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex items-center gap-1.5">
+                <span class="text-app-accent text-xs shrink-0">⏱</span>
+                <span class="text-[11px] text-app-muted truncate">Paskutinį kartą: <strong class="text-app-accent font-bold">${escapeHtml(lastText)}</strong></span>
+              </div>
+              ${hasPrevStrength ? `
+                <button type="button" data-fill-prev="${escapeHtml(ex.id)}" class="fill-prev-btn shrink-0 px-2.5 py-1 rounded-lg bg-app-accentSoft hover:opacity-90 active:scale-95 text-app-accent text-[11px] font-extrabold transition">
+                  ⚡ Užpildyti praeitus
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }
+
+        if (ex.type === 'cardio') {
+          html += `
+            <div class="ex-sets-wrap mt-3 grid grid-cols-[110px_1fr] gap-2 items-center">
+              <div class="relative">
+                <input type="number" inputmode="numeric" min="1" max="180" value="${escapeHtml(exDraft.minutes || '10')}"
+                  data-cardio-min-ex="${escapeHtml(ex.id)}"
+                  class="cardio-min-input w-full h-11 pr-10 pl-3 rounded-xl bg-app-input border border-app-border focus:border-app-accent focus:outline-none text-sm font-extrabold text-center" />
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-app-muted">min.</span>
+              </div>
+              <button type="button" data-cardio-ex="${escapeHtml(ex.id)}" class="cardio-toggle-btn w-full h-11 px-4 rounded-xl font-extrabold text-xs transition flex items-center justify-center gap-2 active:scale-[0.98] ${
+                exDraft.done
+                  ? 'bg-emerald-500 text-slate-950 shadow'
+                  : 'bg-app-elevated border border-app-border hover:opacity-90'
+              }">
+                <span>${exDraft.done ? '✓ Atlikta' : 'Pažymėti ✓'}</span>
+              </button>
+            </div>
+          `;
+        } else {
+          html += `
+            <div class="ex-sets-wrap mt-3 space-y-2">
+              <div class="grid grid-cols-[64px_1fr_1fr_44px] gap-2 px-1 text-[10px] font-extrabold uppercase tracking-wider text-app-muted">
+                <span>Serija</span>
+                <span class="text-center">Svoris (kg)</span>
+                <span class="text-center">Kartai</span>
+                <span class="text-center">✓</span>
+              </div>
+          `;
+
+          exDraft.sets.forEach((sObj, sIdx) => {
+            const isLastDrop = ex.hasDropSet && sIdx === exDraft.sets.length - 1;
+            html += `
+              <div class="ex-set-row grid grid-cols-[64px_1fr_1fr_44px] gap-2 items-center p-1.5 rounded-xl border ${
+                sObj.done ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-app-elevated/70 border-app-border/60'
+              }">
+                <div class="pl-1">
+                  <span class="text-xs font-extrabold ${sObj.done ? 'text-emerald-400' : ''}">Ser. ${sIdx + 1}</span>
+                  ${isLastDrop ? '<span class="block text-[9px] font-extrabold text-red-400">+ DROP</span>' : ''}
+                </div>
+                <input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${escapeHtml(sObj.w)}"
+                  data-ex-id="${escapeHtml(ex.id)}" data-s-idx="${sIdx}" data-field="w"
+                  class="set-val-input w-full h-11 rounded-lg bg-app-input border border-app-border focus:border-app-accent focus:outline-none text-center text-sm font-extrabold" />
+                <input type="number" inputmode="numeric" placeholder="pak." value="${escapeHtml(sObj.r)}"
+                  data-ex-id="${escapeHtml(ex.id)}" data-s-idx="${sIdx}" data-field="r"
+                  class="set-val-input w-full h-11 rounded-lg bg-app-input border border-app-border focus:border-app-accent focus:outline-none text-center text-sm font-extrabold" />
+                <button type="button" data-ex-id="${escapeHtml(ex.id)}" data-s-idx="${sIdx}" data-rest="${ex.restSec}"
+                  class="set-done-btn w-11 h-11 rounded-xl flex items-center justify-center font-black text-base transition active:scale-90 ${
+                    sObj.done
+                      ? 'bg-emerald-500 text-slate-950 shadow'
+                      : 'bg-app-input border border-app-border text-app-muted'
+                  }">✓</button>
+              </div>
+            `;
+
+            if (isLastDrop) {
+              const dropObj = exDraft.dropSet || { w: '', r: '' };
+              const suggestedDrop = sObj.w ? String(Math.round(parseFloat(sObj.w) * 0.7 * 2) / 2) : 'kg';
+              html += `
+                <div class="ex-set-row grid grid-cols-[64px_1fr_1fr_44px] gap-2 items-center p-1.5 rounded-xl bg-red-500/10 border border-red-500/35">
+                  <div class="pl-1">
+                    <span class="text-[10px] font-black text-red-400 block leading-tight">DROP-SET</span>
+                    <span class="text-[9px] text-red-400/80">-30% max</span>
+                  </div>
+                  <input type="number" inputmode="decimal" step="0.5" placeholder="${escapeHtml(suggestedDrop)}" value="${escapeHtml(dropObj.w)}"
+                    data-ex-id="${escapeHtml(ex.id)}" data-drop-field="w"
+                    class="drop-val-input w-full h-10 rounded-lg bg-app-input border border-red-500/35 focus:border-red-400 focus:outline-none text-center text-sm font-extrabold text-red-400" />
+                  <input type="number" inputmode="numeric" placeholder="max" value="${escapeHtml(dropObj.r)}"
+                    data-ex-id="${escapeHtml(ex.id)}" data-drop-field="r"
+                    class="drop-val-input w-full h-10 rounded-lg bg-app-input border border-red-500/35 focus:border-red-400 focus:outline-none text-center text-sm font-extrabold text-red-400" />
+                  <div class="text-center text-sm">🔥</div>
+                </div>
+              `;
+            }
+          });
+
+          html += `</div>`;
+        }
+
+        card.innerHTML = html;
+        container.appendChild(card);
+      });
+
+      updateWorkoutProgress();
+    }
+
+    /**
+     * 10. POILSIO LAIKMATIS
+     */
+    function formatSec(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function startRestTimer(sec) {
+      if (!sec || sec <= 0) return;
+      unlockAudioContext();
+      clearInterval(restTimerInterval);
+      restRemainingSec = sec;
+      const bar = document.getElementById('rest-timer-bar');
+      const disp = document.getElementById('timer-display');
+      disp.textContent = formatSec(restRemainingSec);
+      bar.classList.remove('hidden');
+
+      restTimerInterval = setInterval(() => {
+        restRemainingSec -= 1;
+        if (restRemainingSec <= 0) {
+          stopRestTimer();
+          haptic('success');
+          playDoubleBeep(false);
+          showToast('Poilsio laikas baigėsi! Kitas priėjimas 💪');
+        } else {
+          disp.textContent = formatSec(restRemainingSec);
+        }
+      }, 1000);
+    }
+
+    function stopRestTimer() {
+      clearInterval(restTimerInterval);
+      restTimerInterval = null;
+      document.getElementById('rest-timer-bar').classList.add('hidden');
+    }
+
+    document.getElementById('timer-minus').addEventListener('click', () => {
+      restRemainingSec = Math.max(5, restRemainingSec - 15);
+      document.getElementById('timer-display').textContent = formatSec(restRemainingSec);
+    });
+    document.getElementById('timer-plus').addEventListener('click', () => {
+      restRemainingSec += 15;
+      document.getElementById('timer-display').textContent = formatSec(restRemainingSec);
+    });
+    document.getElementById('timer-skip').addEventListener('click', () => stopRestTimer());
+
+    /**
+     * 11. ASMENINIŲ REKORDŲ (PR) IR 1RM SKAIČIAVIMAS
+     */
+    function calcEpley1RM(weight, reps) {
+      const w = parseFloat(weight) || 0;
+      const r = parseInt(reps, 10) || 0;
+      if (w <= 0 || r <= 0) return 0;
+      if (r === 1) return Math.round(w * 10) / 10;
+      return Math.round(w * (1 + r / 30) * 10) / 10;
+    }
+
+    function getPreviousMaxWeight(exerciseName) {
+      let maxW = 0;
+      history.forEach(sess => {
+        (sess.exercises || []).forEach(ex => {
+          if (ex.name === exerciseName && ex.type === 'strength') {
+            (ex.sets || []).forEach(s => {
+              const w = parseFloat(s.w) || 0;
+              if (w > maxW) maxW = w;
+            });
+          }
+        });
+      });
+      return maxW;
+    }
+
+    /**
+     * 12. TRENIRUOTĖS UŽBAIGIMAS IR IŠSAUGOJIMAS
+     */
+    document.getElementById('finish-workout-btn').addEventListener('click', () => {
+      const day = program[activeDayIdx];
+      if (!day) return;
+
+      const endTs = Date.now();
+      const startTs = sessionStartTimestamp || endTs;
+      const durationMin = Math.max(1, Math.round((endTs - startTs) / 60000));
+      const dateStr = new Date(endTs).toLocaleDateString('lt-LT');
+      const startTimeStr = formatClock(startTs);
+      const endTimeStr = formatClock(endTs);
+
+      let totalVolume = 0;
+      const recordedExercises = [];
+      const newPRsAchieved = [];
+
+      day.exercises.forEach(ex => {
+        const d = ensureDraftForExercise(ex);
+        if (ex.type === 'cardio') {
+          if (d.done) {
+            const mins = d.minutes || '10';
+            lastRecords[ex.id] = { done: true, minutes: mins, date: dateStr };
+            recordedExercises.push({
+              name: ex.name,
+              type: 'cardio',
+              summary: `${mins} min.`,
+              sets: []
+            });
+          }
+          d.done = false;
+        } else {
+          const validSets = d.sets.filter(s => s.w !== '' || s.r !== '');
+          if (validSets.length > 0) {
+            const cleanSets = d.sets.map(s => ({ w: s.w, r: s.r }));
+            const recObj = { sets: cleanSets, date: dateStr };
+            if (ex.hasDropSet && d.dropSet) {
+              recObj.dropSet = { w: d.dropSet.w, r: d.dropSet.r };
+            }
+            lastRecords[ex.id] = recObj;
+
+            let exMaxW = 0;
+            cleanSets.forEach(s => {
+              const w = parseFloat(s.w) || 0;
+              const r = parseInt(s.r, 10) || 0;
+              if (w > exMaxW) exMaxW = w;
+              totalVolume += w * r;
+            });
+            if (ex.hasDropSet && d.dropSet) {
+              totalVolume += (parseFloat(d.dropSet.w) || 0) * (parseInt(d.dropSet.r, 10) || 0);
+            }
+
+            const prevBestW = getPreviousMaxWeight(ex.name);
+            if (exMaxW > 0 && prevBestW > 0 && exMaxW > prevBestW) {
+              newPRsAchieved.push(`${ex.name}: ${exMaxW} kg (buvo ${prevBestW} kg)`);
+            }
+
+            const setsSummary = validSets.map(s => `${s.w || '?'}kg×${s.r || '?'}`).join(', ');
+            const dropStr = ex.hasDropSet && d.dropSet && (d.dropSet.w || d.dropSet.r)
+              ? ` + Drop: ${d.dropSet.w || '?'}kg×${d.dropSet.r || '?'}`
+              : '';
+
+            recordedExercises.push({
+              name: ex.name,
+              type: 'strength',
+              summary: setsSummary + dropStr,
+              sets: cleanSets,
+              dropSet: ex.hasDropSet ? { ...d.dropSet } : null
+            });
+          }
+          d.sets.forEach(s => (s.done = false));
+        }
+      });
+
+      if (recordedExercises.length === 0) {
+        showToast('Įveskite bent vieno pratimo rezultatus prieš baigiant!');
+        return;
+      }
+
+      const sessionRecord = {
+        id: endTs,
+        dayTitle: day.title,
+        date: dateStr,
+        startTime: startTimeStr,
+        endTime: endTimeStr,
+        durationMin,
+        totalVolume: Math.round(totalVolume),
+        newPRs: newPRsAchieved,
+        exercises: recordedExercises
+      };
+
+      history.unshift(sessionRecord);
+      if (history.length > 60) history = history.slice(0, 60);
+
+      sessionStartTimestamp = null;
+      SafeStore.set(KEYS.SESSION_START, null);
+      SafeStore.set(KEYS.LAST_RECORDS, lastRecords);
+      SafeStore.set(KEYS.HISTORY, history);
+      SafeStore.set(KEYS.DRAFT, draft);
+
+      stopRestTimer();
+      renderWorkoutView();
+      haptic('success');
+      openSummaryModal(sessionRecord);
+    });
+
+    /**
+     * 13. PROGRESO GRAFIKAI IR PR (TAB 2)
+     */
+    function getAllStrengthExercises() {
+      const names = new Set();
+      program.forEach(d => {
+        d.exercises.forEach(ex => {
+          if (ex.type === 'strength') names.add(ex.name);
+        });
+      });
+      history.forEach(sess => {
+        (sess.exercises || []).forEach(ex => {
+          if (ex.type === 'strength') names.add(ex.name);
+        });
+      });
+      return Array.from(names);
+    }
+
+    function renderProgressView() {
+      const select = document.getElementById('progress-exercise-select');
+      const allNames = getAllStrengthExercises();
+      const prevSelected = select.value;
+
+      if (allNames.length === 0) {
+        select.innerHTML = `<option value="">Nėra jėgos pratimų</option>`;
+        return;
+      }
+
+      select.innerHTML = allNames.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+      if (prevSelected && allNames.includes(prevSelected)) {
+        select.value = prevSelected;
+      }
+
+      const selectedName = select.value;
+      const dataPoints = [];
+
+      [...history].reverse().forEach(sess => {
+        (sess.exercises || []).forEach(ex => {
+          if (ex.name === selectedName && ex.type === 'strength') {
+            let maxW = 0;
+            let best1RM = 0;
+            let exTonnage = 0;
+
+            (ex.sets || []).forEach(s => {
+              const w = parseFloat(s.w) || 0;
+              const r = parseInt(s.r, 10) || 0;
+              if (w > maxW) maxW = w;
+              const est = calcEpley1RM(w, r);
+              if (est > best1RM) best1RM = est;
+              exTonnage += w * r;
+            });
+            if (ex.dropSet) {
+              exTonnage += (parseFloat(ex.dropSet.w) || 0) * (parseInt(ex.dropSet.r, 10) || 0);
+            }
+
+            if (maxW > 0) {
+              dataPoints.push({
+                date: sess.date,
+                maxW,
+                est1RM: best1RM,
+                tonnage: Math.round(exTonnage),
+                summary: ex.summary || ''
+              });
+            }
+          }
+        });
+      });
+
+      if (dataPoints.length === 0) {
+        program.forEach(d => {
+          d.exercises.forEach(ex => {
+            if (ex.name === selectedName && lastRecords[ex.id] && Array.isArray(lastRecords[ex.id].sets)) {
+              let maxW = 0;
+              let best1RM = 0;
+              let exTonnage = 0;
+              lastRecords[ex.id].sets.forEach(s => {
+                const w = parseFloat(s.w) || 0;
+                const r = parseInt(s.r, 10) || 0;
+                if (w > maxW) maxW = w;
+                const est = calcEpley1RM(w, r);
+                if (est > best1RM) best1RM = est;
+                exTonnage += w * r;
+              });
+              if (maxW > 0) {
+                dataPoints.push({
+                  date: lastRecords[ex.id].date || 'Paskutinis',
+                  maxW,
+                  est1RM: best1RM,
+                  tonnage: Math.round(exTonnage),
+                  summary: formatLastRecordText(ex) || ''
+                });
+              }
+            }
+          });
+        });
+      }
+
+      const chartBox = document.getElementById('progress-chart-box');
+      const detailBox = document.getElementById('progress-point-detail');
+      const logsBox = document.getElementById('progress-exercise-logs');
+      detailBox.classList.add('hidden');
+
+      if (dataPoints.length === 0) {
+        document.getElementById('pr-max-weight').textContent = '—';
+        document.getElementById('pr-est-1rm').textContent = '—';
+        document.getElementById('pr-last-tonnage').textContent = '—';
+        chartBox.innerHTML = `
+          <div class="py-10 px-4 text-center">
+            <p class="text-xs font-bold">Šiam pratimui dar nėra užfiksuotų rezultatų</p>
+            <p class="text-[11px] text-app-muted mt-1">Atlikite treniruotę ir paspauskite „Baigti ir išsaugoti“ – čia atsiras jūsų jėgos augimo kreivė.</p>
+          </div>
+        `;
+        logsBox.innerHTML = `<p class="text-app-muted text-[11px]">Įrašų dar nėra.</p>`;
+        return;
+      }
+
+      const overallMaxW = Math.max(...dataPoints.map(p => p.maxW));
+      const overallMax1RM = Math.max(...dataPoints.map(p => p.est1RM));
+      const lastPt = dataPoints[dataPoints.length - 1];
+
+      document.getElementById('pr-max-weight').textContent = `${overallMaxW} kg`;
+      document.getElementById('pr-est-1rm').textContent = `${overallMax1RM} kg`;
+      document.getElementById('pr-last-tonnage').textContent = `${lastPt.tonnage} kg`;
+
+      const svgW = 380;
+      const svgH = 185;
+      const padL = 38;
+      const padR = 18;
+      const padT = 20;
+      const padB = 30;
+      const plotW = svgW - padL - padR;
+      const plotH = svgH - padT - padB;
+
+      const allVals = dataPoints.flatMap(p => [p.maxW, p.est1RM]);
+      let minVal = Math.min(...allVals);
+      let maxVal = Math.max(...allVals);
+      if (minVal === maxVal) {
+        minVal = Math.max(0, minVal - 10);
+        maxVal = maxVal + 10;
+      } else {
+        const margin = (maxVal - minVal) * 0.15;
+        minVal = Math.max(0, minVal - margin);
+        maxVal = maxVal + margin;
+      }
+
+      const getX = i => (dataPoints.length === 1 ? padL + plotW / 2 : padL + (i / (dataPoints.length - 1)) * plotW);
+      const getY = val => padT + plotH - ((val - minVal) / (maxVal - minVal)) * plotH;
+
+      const ptsW = dataPoints.map((p, i) => `${getX(i).toFixed(1)},${getY(p.maxW).toFixed(1)}`).join(' ');
+      const pts1RM = dataPoints.map((p, i) => `${getX(i).toFixed(1)},${getY(p.est1RM).toFixed(1)}`).join(' ');
+      const yMid = (minVal + maxVal) / 2;
+
+      chartBox.innerHTML = `
+        <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full h-auto select-none">
+          <line x1="${padL}" y1="${padT}" x2="${svgW - padR}" y2="${padT}" stroke="currentColor" stroke-opacity="0.1" stroke-dasharray="3 3" />
+          <line x1="${padL}" y1="${padT + plotH / 2}" x2="${svgW - padR}" y2="${padT + plotH / 2}" stroke="currentColor" stroke-opacity="0.1" stroke-dasharray="3 3" />
+          <line x1="${padL}" y1="${padT + plotH}" x2="${svgW - padR}" y2="${padT + plotH}" stroke="currentColor" stroke-opacity="0.15" />
+
+          <text x="${padL - 6}" y="${padT + 4}" text-anchor="end" fill="var(--text-muted)" font-size="9" font-weight="700">${Math.round(maxVal)}</text>
+          <text x="${padL - 6}" y="${padT + plotH / 2 + 3}" text-anchor="end" fill="var(--text-muted)" font-size="9" font-weight="700">${Math.round(yMid)}</text>
+          <text x="${padL - 6}" y="${padT + plotH}" text-anchor="end" fill="var(--text-muted)" font-size="9" font-weight="700">${Math.round(minVal)}</text>
+
+          ${dataPoints.length > 1 ? `<polyline fill="none" stroke="#10b981" stroke-width="2" stroke-dasharray="4 3" points="${pts1RM}" />` : ''}
+          ${dataPoints.length > 1 ? `<polyline fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" points="${ptsW}" />` : ''}
+
+          ${dataPoints.map((p, i) => {
+            const cx = getX(i);
+            const cyW = getY(p.maxW);
+            const cy1 = getY(p.est1RM);
+            const shortDate = p.date.length >= 10 ? p.date.slice(5) : p.date;
+            return `
+              <circle cx="${cx}" cy="${cy1}" r="3.5" fill="#10b981" />
+              <circle cx="${cx}" cy="${cyW}" r="5.5" fill="var(--accent)" stroke="var(--bg-card)" stroke-width="2" class="cursor-pointer chart-dot" data-pt-idx="${i}" />
+              <text x="${cx}" y="${svgH - 8}" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-weight="700">${escapeHtml(shortDate)}</text>
+            `;
+          }).join('')}
+        </svg>
+      `;
+
+      chartBox.querySelectorAll('.chart-dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+          const pt = dataPoints[Number(dot.dataset.ptIdx)];
+          detailBox.classList.remove('hidden');
+          document.getElementById('point-detail-date').textContent = `Data: ${pt.date}`;
+          document.getElementById('point-detail-vals').textContent = `Maks: ${pt.maxW} kg • 1RM: ${pt.est1RM} kg`;
+          haptic('light');
+        });
+      });
+
+      logsBox.innerHTML = [...dataPoints].reverse().map(pt => `
+        <div class="p-2.5 rounded-xl bg-app-elevated border border-app-border/70 flex items-center justify-between gap-2">
+          <div>
+            <span class="font-extrabold text-app-accent">${escapeHtml(pt.date)}</span>
+            <span class="block text-[11px] text-app-muted mt-0.5">${escapeHtml(pt.summary)}</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="font-black block">${pt.maxW} kg</span>
+            <span class="text-[10px] text-emerald-400 font-bold">1RM: ${pt.est1RM} kg</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('progress-exercise-select').addEventListener('change', () => renderProgressView());
+
+    /**
+     * 14. EKSPORTAS: PNG KORTELĖ, CSV (EXCEL) IR TXT
+     */
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+
+    function downloadTXT(record) {
+      const lines = [
+        `========================================`,
+        `GYMPRO TRACKER — TRENIRUOTĖS ATASKAITA`,
+        `========================================`,
+        `Sportininkas: ${tgUser.firstName}`,
+        `Diena: ${record.dayTitle}`,
+        `Data: ${record.date}`,
+        `Laikas: ${record.startTime} – ${record.endTime} (${record.durationMin} min.)`,
+        `Bendras tonažas: ${record.totalVolume} kg`,
+        `----------------------------------------`,
+        `ATLIKTI PRATIMAI:`,
+        ``
+      ];
+      record.exercises.forEach((ex, i) => {
+        lines.push(`${i + 1}. ${ex.name}`);
+        lines.push(`   Rezultatas: ${ex.summary}`);
+      });
+      lines.push(`========================================`);
+
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+      triggerDownload(blob, `Treniruote_${record.date}.txt`);
+      showToast('TXT ataskaita paruošta!');
+    }
+
+    function downloadCSV(record) {
+      const rows = [
+        ['Data', 'Diena', 'Pradžia', 'Pabaiga', 'Trukmė (min)', 'Pratimas', 'Serija', 'Svoris (kg)', 'Pakartojimai', 'Tonažas (kg)']
+      ];
+
+      record.exercises.forEach(ex => {
+        if (ex.type === 'cardio') {
+          rows.push([record.date, record.dayTitle, record.startTime, record.endTime, record.durationMin, ex.name, 'Kardio', '-', ex.summary, 0]);
+        } else {
+          ex.sets.forEach((s, idx) => {
+            if (s.w !== '' || s.r !== '') {
+              const vol = (parseFloat(s.w) || 0) * (parseInt(s.r, 10) || 0);
+              rows.push([record.date, record.dayTitle, record.startTime, record.endTime, record.durationMin, ex.name, idx + 1, s.w || 0, s.r || 0, vol]);
+            }
+          });
+          if (ex.dropSet && (ex.dropSet.w || ex.dropSet.r)) {
+            const dVol = (parseFloat(ex.dropSet.w) || 0) * (parseInt(ex.dropSet.r, 10) || 0);
+            rows.push([record.date, record.dayTitle, record.startTime, record.endTime, record.durationMin, ex.name, 'Drop-Set', ex.dropSet.w || 0, ex.dropSet.r || 0, dVol]);
+          }
+        }
+      });
+
+      const csvContent = '\uFEFF' + rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      triggerDownload(blob, `Treniruote_${record.date}.csv`);
+      showToast('CSV (Excel) failas paruoštas!');
+    }
+
+    function downloadPNG(record) {
+      const styles = getComputedStyle(document.documentElement);
+      const bg = styles.getPropertyValue('--canvas-bg').trim() || '#0e1117';
+      const cardBg = styles.getPropertyValue('--canvas-card').trim() || '#161b24';
+      const accent = styles.getPropertyValue('--canvas-accent').trim() || '#f59e0b';
+      const textMain = styles.getPropertyValue('--canvas-text').trim() || '#f8fafc';
+      const textMuted = styles.getPropertyValue('--canvas-muted').trim() || '#94a3b8';
+
+      const width = 900;
+      const rowHeight = 68;
+      const headerHeight = 290;
+      const footerHeight = 70;
+      const height = headerHeight + record.exercises.length * rowHeight + footerHeight;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = accent;
+      ctx.fillRect(0, 0, width, 12);
+
+      ctx.fillStyle = accent;
+      ctx.font = '800 22px Inter, sans-serif';
+      ctx.fillText('GYMPRO TRACKER • ATASKAITA', 48, 64);
+
+      ctx.fillStyle = textMain;
+      ctx.font = '900 38px Inter, sans-serif';
+      ctx.fillText(record.dayTitle, 48, 114);
+
+      ctx.fillStyle = textMuted;
+      ctx.font = '600 22px Inter, sans-serif';
+      ctx.fillText(`Data: ${record.date}   •   Sportininkas: ${getAthleteDisplayName()}`, 48, 152);
+
+      const stats = [
+        { label: 'LAIKAS', val: `${record.startTime} – ${record.endTime}` },
+        { label: 'TRUKMĖ', val: `${record.durationMin} min.` },
+        { label: 'TONAŽAS', val: `${record.totalVolume} kg` }
+      ];
+      const boxW = (width - 96 - 32) / 3;
+      stats.forEach((st, i) => {
+        const bx = 48 + i * (boxW + 16);
+        const by = 178;
+        ctx.fillStyle = cardBg;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') ctx.roundRect(bx, by, boxW, 84, 16);
+        else ctx.rect(bx, by, boxW, 84);
+        ctx.fill();
+
+        ctx.fillStyle = textMuted;
+        ctx.font = '700 16px Inter, sans-serif';
+        ctx.fillText(st.label, bx + 20, by + 32);
+
+        ctx.fillStyle = i === 2 ? accent : textMain;
+        ctx.font = '800 26px Inter, sans-serif';
+        ctx.fillText(st.val, bx + 20, by + 66);
+      });
+
+      record.exercises.forEach((ex, idx) => {
+        const y = headerHeight + idx * rowHeight;
+        ctx.fillStyle = cardBg;
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') ctx.roundRect(48, y, width - 96, rowHeight - 10, 12);
+        else ctx.rect(48, y, width - 96, rowHeight - 10);
+        ctx.fill();
+
+        ctx.fillStyle = accent;
+        ctx.font = '800 20px Inter, sans-serif';
+        ctx.fillText(`${idx + 1}.`, 68, y + 36);
+
+        ctx.fillStyle = textMain;
+        ctx.font = '700 21px Inter, sans-serif';
+        const shortName = ex.name.length > 34 ? ex.name.slice(0, 32) + '…' : ex.name;
+        ctx.fillText(shortName, 108, y + 36);
+
+        ctx.fillStyle = accent;
+        ctx.font = '800 20px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(ex.summary, width - 68, y + 36);
+        ctx.textAlign = 'left';
+      });
+
+      ctx.fillStyle = textMuted;
+      ctx.font = '600 18px Inter, sans-serif';
+      ctx.fillText('GymPro Tracker V4.2 • Telegram Mini App', 48, height - 26);
+
+      canvas.toBlob(blob => {
+        if (blob) {
+          triggerDownload(blob, `Treniruote_${record.date}.png`);
+          showToast('PNG kortelė atsisiųsta!');
+        }
+      }, 'image/png');
+    }
+
+    /**
+     * 15. SUVESTINĖS MODALAS
+     */
+    let currentSummaryRecord = null;
+    function openSummaryModal(record) {
+      currentSummaryRecord = record;
+      document.getElementById('summary-day-title').textContent = record.dayTitle;
+      document.getElementById('summary-date-line').textContent = `Data: ${record.date} • ${getAthleteDisplayName()}`;
+      document.getElementById('summary-time-range').textContent = `${record.startTime}–${record.endTime}`;
+      document.getElementById('summary-duration').textContent = `${record.durationMin} min.`;
+      document.getElementById('summary-tonnage').textContent = `${record.totalVolume} kg`;
+
+      const prBadge = document.getElementById('summary-pr-badge');
+      const prBox = document.getElementById('summary-pr-list-box');
+      if (record.newPRs && record.newPRs.length > 0) {
+        prBadge.classList.remove('hidden');
+        prBox.classList.remove('hidden');
+        document.getElementById('summary-pr-items').innerHTML = record.newPRs.map(item => `<div>• ${escapeHtml(item)}</div>`).join('');
+      } else {
+        prBadge.classList.add('hidden');
+        prBox.classList.add('hidden');
+      }
+
+      const listEl = document.getElementById('summary-exercises-list');
+      listEl.innerHTML = record.exercises.map((ex, i) => `
+        <div class="flex items-start justify-between gap-2 py-1 border-b border-app-border/50 last:border-none">
+          <span class="font-semibold">${i + 1}. ${escapeHtml(ex.name)}</span>
+          <span class="font-extrabold text-app-accent shrink-0">${escapeHtml(ex.summary)}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('summary-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('close-summary-modal').addEventListener('click', () => {
+      document.getElementById('summary-modal').classList.add('hidden');
+    });
+    document.getElementById('summary-dl-png').addEventListener('click', () => currentSummaryRecord && downloadPNG(currentSummaryRecord));
+    document.getElementById('summary-dl-csv').addEventListener('click', () => currentSummaryRecord && downloadCSV(currentSummaryRecord));
+    document.getElementById('summary-dl-txt').addEventListener('click', () => currentSummaryRecord && downloadTXT(currentSummaryRecord));
+
+    /**
+     * 16. PROGRAMOS REDAKTORIUS (TAB 3)
+     */
+    function saveProgramChanges() {
+      SafeStore.set(KEYS.PROGRAM, program);
+      renderEditorView();
+      renderWorkoutView();
+    }
+
+    function renderEditorView() {
+      const container = document.getElementById('editor-container');
+      container.innerHTML = '';
+
+      program.forEach((day, dIdx) => {
+        const dayBox = document.createElement('section');
+        dayBox.className = 'bg-app-card border border-app-border rounded-2xl p-3.5 space-y-3';
+
+        let html = `
+          <div class="flex items-start justify-between gap-2 pb-2.5 border-b border-app-border">
+            <div class="min-w-0">
+              <h2 class="text-sm font-black truncate">${escapeHtml(day.title)}</h2>
+              <p class="text-[11px] text-app-muted truncate">${escapeHtml(day.subtitle || 'Treniruotės diena')}</p>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" data-edit-day="${dIdx}" class="p-2 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-85" title="Redaguoti dieną">✏️</button>
+              ${program.length > 1 ? `<button type="button" data-del-day="${dIdx}" class="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold" title="Ištrinti dieną">🗑</button>` : ''}
+            </div>
+          </div>
+          <div class="space-y-2">
+        `;
+
+        day.exercises.forEach((ex, eIdx) => {
+          html += `
+            <div class="p-2.5 rounded-xl bg-app-elevated border border-app-border/70 flex items-center justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="text-xs font-extrabold truncate">${eIdx}. ${escapeHtml(ex.name)}</div>
+                <div class="text-[11px] text-app-muted mt-0.5">
+                  ${ex.type === 'cardio' ? `🏃 Kardio • ${escapeHtml(ex.target || '10 min.')}` : `${ex.setsCount} ser. • Poilsis ${ex.restSec}s${ex.hasDropSet ? ' • 🔥 Drop-Set' : ''}`}
+                </div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" data-move-up="${dIdx}:${eIdx}" ${eIdx === 0 ? 'disabled' : ''} class="w-8 h-8 rounded-lg bg-app-input text-xs font-bold disabled:opacity-30">↑</button>
+                <button type="button" data-move-down="${dIdx}:${eIdx}" ${eIdx === day.exercises.length - 1 ? 'disabled' : ''} class="w-8 h-8 rounded-lg bg-app-input text-xs font-bold disabled:opacity-30">↓</button>
+                <button type="button" data-edit-ex="${dIdx}:${eIdx}" class="w-8 h-8 rounded-lg bg-app-accentSoft text-app-accent text-xs font-bold">✏️</button>
+                <button type="button" data-del-ex="${dIdx}:${eIdx}" class="w-8 h-8 rounded-lg bg-red-500/15 text-red-400 text-xs font-bold">✕</button>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+          </div>
+          <button type="button" data-add-ex="${dIdx}" class="w-full min-h-[42px] rounded-xl bg-app-accentSoft border border-app-accent/35 text-app-accent text-xs font-extrabold hover:opacity-90 active:scale-[0.99] transition">
+            + Pridėti pratimą į šią dieną
+          </button>
+        `;
+
+        dayBox.innerHTML = html;
+        container.appendChild(dayBox);
+      });
+    }
+
+    const exModal = document.getElementById('exercise-modal');
+    const isCardioCheck = document.getElementById('ex-form-is-cardio');
+    const strengthGroup = document.getElementById('strength-fields-group');
+
+    isCardioCheck.addEventListener('change', () => {
+      strengthGroup.classList.toggle('hidden', isCardioCheck.checked);
+    });
+
+    function openExerciseModal(dayIdx, exIdx = -1) {
+      document.getElementById('ex-form-day-idx').value = String(dayIdx);
+      document.getElementById('ex-form-ex-idx').value = String(exIdx);
+
+      if (exIdx >= 0) {
+        const ex = program[dayIdx].exercises[exIdx];
+        document.getElementById('ex-modal-title').textContent = 'Redaguoti pratimą';
+        document.getElementById('ex-form-name').value = ex.name;
+        isCardioCheck.checked = ex.type === 'cardio';
+        document.getElementById('ex-form-sets').value = String(ex.setsCount || 3);
+        document.getElementById('ex-form-rest').value = String(ex.restSec ?? 90);
+        document.getElementById('ex-form-dropset').checked = Boolean(ex.hasDropSet);
+        document.getElementById('ex-form-target').value = ex.target || '';
+        document.getElementById('ex-form-note').value = ex.note || '';
+      } else {
+        document.getElementById('ex-modal-title').textContent = 'Naujas pratimas';
+        document.getElementById('ex-form-name').value = '';
+        isCardioCheck.checked = false;
+        document.getElementById('ex-form-sets').value = '3';
+        document.getElementById('ex-form-rest').value = '90';
+        document.getElementById('ex-form-dropset').checked = false;
+        document.getElementById('ex-form-target').value = '3 ser. po 8-10 pak.';
+        document.getElementById('ex-form-note').value = '';
+      }
+      strengthGroup.classList.toggle('hidden', isCardioCheck.checked);
+      exModal.classList.remove('hidden');
+    }
+
+    document.getElementById('close-ex-modal').addEventListener('click', () => exModal.classList.add('hidden'));
+    document.getElementById('cancel-ex-modal').addEventListener('click', () => exModal.classList.add('hidden'));
+
+    document.getElementById('exercise-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const dIdx = Number(document.getElementById('ex-form-day-idx').value);
+      const eIdx = Number(document.getElementById('ex-form-ex-idx').value);
+      const isCardio = isCardioCheck.checked;
+
+      const newExObj = {
+        id: eIdx >= 0 ? program[dIdx].exercises[eIdx].id : `ex_${Date.now()}`,
+        name: document.getElementById('ex-form-name').value.trim(),
+        type: isCardio ? 'cardio' : 'strength',
+        setsCount: isCardio ? 1 : Number(document.getElementById('ex-form-sets').value),
+        restSec: isCardio ? 0 : Math.max(0, Number(document.getElementById('ex-form-rest').value) || 0),
+        hasDropSet: isCardio ? false : document.getElementById('ex-form-dropset').checked,
+        target: document.getElementById('ex-form-target').value.trim(),
+        note: document.getElementById('ex-form-note').value.trim()
+      };
+
+      if (eIdx >= 0) {
+        program[dIdx].exercises[eIdx] = newExObj;
+      } else {
+        program[dIdx].exercises.push(newExObj);
+      }
+
+      exModal.classList.add('hidden');
+      saveProgramChanges();
+      haptic('success');
+      showToast('Pratimas išsaugotas!');
+    });
+
+    const dayModal = document.getElementById('day-modal');
+    function openDayModal(dIdx = -1) {
+      document.getElementById('day-form-idx').value = String(dIdx);
+      if (dIdx >= 0) {
+        document.getElementById('day-modal-title').textContent = 'Redaguoti dieną';
+        document.getElementById('day-form-title').value = program[dIdx].title;
+        document.getElementById('day-form-subtitle').value = program[dIdx].subtitle || '';
+      } else {
+        document.getElementById('day-modal-title').textContent = 'Nauja treniruotės diena';
+        document.getElementById('day-form-title').value = `${program.length + 1} Diena: `;
+        document.getElementById('day-form-subtitle').value = '';
+      }
+      dayModal.classList.remove('hidden');
+    }
+
+    document.getElementById('add-day-btn').addEventListener('click', () => openDayModal(-1));
+    document.getElementById('cancel-day-modal').addEventListener('click', () => dayModal.classList.add('hidden'));
+
+    document.getElementById('day-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const dIdx = Number(document.getElementById('day-form-idx').value);
+      const title = document.getElementById('day-form-title').value.trim();
+      const subtitle = document.getElementById('day-form-subtitle').value.trim();
+
+      if (dIdx >= 0) {
+        program[dIdx].title = title;
+        program[dIdx].subtitle = subtitle;
+      } else {
+        program.push({
+          id: `day_${Date.now()}`,
+          title,
+          subtitle,
+          exercises: []
+        });
+      }
+      dayModal.classList.add('hidden');
+      saveProgramChanges();
+      haptic('success');
+      showToast('Diena išsaugota!');
+    });
+
+    document.getElementById('editor-container').addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+
+      if (btn.dataset.addEx !== undefined) openExerciseModal(Number(btn.dataset.addEx), -1);
+      if (btn.dataset.editDay !== undefined) openDayModal(Number(btn.dataset.editDay));
+
+      if (btn.dataset.delDay !== undefined) {
+        const dIdx = Number(btn.dataset.delDay);
+        showConfirm('Ištrinti dieną?', `Ar tikrai norite ištrinti „${program[dIdx].title}“?`, () => {
+          program.splice(dIdx, 1);
+          if (activeDayIdx >= program.length) activeDayIdx = 0;
+          saveProgramChanges();
+          showToast('Diena ištrinta');
+        });
+      }
+
+      if (btn.dataset.editEx) {
+        const [dIdx, eIdx] = btn.dataset.editEx.split(':').map(Number);
+        openExerciseModal(dIdx, eIdx);
+      }
+
+      if (btn.dataset.delEx) {
+        const [dIdx, eIdx] = btn.dataset.delEx.split(':').map(Number);
+        showConfirm('Ištrinti pratimą?', `Pašalinti „${program[dIdx].exercises[eIdx].name}“?`, () => {
+          program[dIdx].exercises.splice(eIdx, 1);
+          saveProgramChanges();
+          showToast('Pratimas pašalintas');
+        });
+      }
+
+      if (btn.dataset.moveUp) {
+        const [dIdx, eIdx] = btn.dataset.moveUp.split(':').map(Number);
+        if (eIdx > 0) {
+          const arr = program[dIdx].exercises;
+          [arr[eIdx - 1], arr[eIdx]] = [arr[eIdx], arr[eIdx - 1]];
+          saveProgramChanges();
+        }
+      }
+
+      if (btn.dataset.moveDown) {
+        const [dIdx, eIdx] = btn.dataset.moveDown.split(':').map(Number);
+        const arr = program[dIdx].exercises;
+        if (eIdx < arr.length - 1) {
+          [arr[eIdx + 1], arr[eIdx]] = [arr[eIdx], arr[eIdx + 1]];
+          saveProgramChanges();
+        }
+      }
+    });
+
+    /**
+     * 17. ISTORIJA IR EKSPORTAS (TAB 4)
+     */
+    function renderHistoryView() {
+      const container = document.getElementById('history-container');
+      document.getElementById('history-count-badge').textContent = String(history.length);
+
+      if (history.length === 0) {
+        container.innerHTML = `
+          <div class="bg-app-card border border-app-border rounded-2xl p-8 text-center mt-4">
+            <div class="text-3xl mb-2">📊</div>
+            <h3 class="text-sm font-extrabold">Istorija kol kas tuščia</h3>
+            <p class="text-xs text-app-muted mt-1">Atlikite treniruotę ir paspauskite „Baigti ir išsaugoti“.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      history.forEach((sess, idx) => {
+        const card = document.createElement('div');
+        card.className = 'bg-app-card border border-app-border rounded-2xl p-3.5 space-y-2.5';
+
+        const exListHtml = (sess.exercises || []).map(ex => `
+          <div class="flex items-start justify-between gap-2 text-xs py-1 border-b border-app-border/40 last:border-none">
+            <span class="text-app-muted truncate">${escapeHtml(ex.name)}</span>
+            <span class="font-bold text-app-accent shrink-0">${escapeHtml(ex.summary)}</span>
+          </div>
+        `).join('');
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-[11px] font-extrabold text-app-accent">${escapeHtml(sess.date)}</span>
+                <span class="text-[11px] text-app-muted">• ${escapeHtml(sess.startTime)}–${escapeHtml(sess.endTime)} (${sess.durationMin} min.)</span>
+                ${sess.newPRs && sess.newPRs.length > 0 ? `<span class="px-1.5 py-0.5 rounded bg-app-accentSoft text-app-accent text-[9px] font-extrabold">🏆 PR</span>` : ''}
+              </div>
+              <h3 class="text-sm font-black mt-0.5">${escapeHtml(sess.dayTitle)}</h3>
+            </div>
+            <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[11px] font-extrabold shrink-0">
+              ${sess.totalVolume} kg
+            </span>
+          </div>
+
+          <div class="bg-app-elevated/60 rounded-xl p-2.5">${exListHtml}</div>
+
+          <div class="grid grid-cols-3 gap-1.5 pt-1">
+            <button type="button" data-hist-png="${idx}" class="min-h-[38px] rounded-xl bg-app-accentSoft text-app-accent text-[11px] font-extrabold active:scale-95 transition">🖼️ PNG</button>
+            <button type="button" data-hist-csv="${idx}" class="min-h-[38px] rounded-xl bg-app-elevated border border-app-border text-[11px] font-bold active:scale-95 transition">📊 CSV</button>
+            <button type="button" data-hist-txt="${idx}" class="min-h-[38px] rounded-xl bg-app-elevated border border-app-border text-[11px] font-bold active:scale-95 transition">📄 TXT</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    document.getElementById('history-container').addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.dataset.histPng !== undefined) downloadPNG(history[Number(btn.dataset.histPng)]);
+      if (btn.dataset.histCsv !== undefined) downloadCSV(history[Number(btn.dataset.histCsv)]);
+      if (btn.dataset.histTxt !== undefined) downloadTXT(history[Number(btn.dataset.histTxt)]);
+    });
+
+    /**
+     * 18. NUSTATYMAI IR NAVIGACIJA (TAB 5)
+     */
+    const customGreetingInput = document.getElementById('custom-greeting-input');
+    const clearGreetingBtn = document.getElementById('clear-greeting-btn');
+
+    customGreetingInput.value = customGreeting;
+    customGreetingInput.addEventListener('input', () => {
+      customGreeting = customGreetingInput.value.trim();
+      SafeStore.set(KEYS.CUSTOM_GREETING, customGreeting);
+      updateHeaderGreetingUI();
+    });
+
+    clearGreetingBtn.addEventListener('click', () => {
+      customGreeting = '';
+      customGreetingInput.value = '';
+      SafeStore.set(KEYS.CUSTOM_GREETING, '');
+      updateHeaderGreetingUI();
+      haptic('light');
+      showToast('Atstatytas numatytasis pasveikinimas');
+    });
+
+    const guidePanel = document.getElementById('homescreen-guide-panel');
+    const guideChevron = document.getElementById('guide-chevron');
+
+    document.getElementById('toggle-homescreen-guide-btn').addEventListener('click', () => {
+      const isHidden = guidePanel.classList.contains('hidden');
+      guidePanel.classList.toggle('hidden');
+      guideChevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+      haptic('light');
+    });
+
+    function checkHomeScreenAddedStatus() {
+      try {
+        if (!tg || typeof tg.checkHomeScreenStatus !== 'function') return;
+        tg.checkHomeScreenStatus(status => {
+          const badge = document.getElementById('homescreen-status-badge');
+          if (status === 'added') badge.classList.remove('hidden');
+          else badge.classList.add('hidden');
+        });
+      } catch (e) {}
+    }
+
+    checkHomeScreenAddedStatus();
+
+    document.getElementById('add-to-homescreen-btn').addEventListener('click', () => {
+      haptic('medium');
+      if (tg && typeof tg.addToHomeScreen === 'function') {
+        try {
+          tg.addToHomeScreen();
+          setTimeout(checkHomeScreenAddedStatus, 2500);
+        } catch (e) {
+          guidePanel.classList.remove('hidden');
+          guideChevron.style.transform = 'rotate(180deg)';
+          showToast('Vadovaukitės žemiau pateikta Android / iOS instrukcija.');
+        }
+      } else {
+        guidePanel.classList.remove('hidden');
+        guideChevron.style.transform = 'rotate(180deg)';
+        showToast('Atidarykite gidą žemiau – ten parodyta kaip pridėti per 3 paspaudimus!');
+      }
+    });
+
+    document.querySelectorAll('.density-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyDensity(btn.dataset.densityVal);
+        haptic('light');
+        showToast(btn.dataset.densityVal === 'compact' ? 'Įjungtas kompaktiškas išdėstymas' : 'Įjungtas standartinis išdėstymas');
+      });
+    });
+
+    document.querySelectorAll('.scale-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        applyScale(btn.dataset.scaleVal);
+        haptic('light');
+      });
+    });
+
+    const soundToggle = document.getElementById('sound-enabled-toggle');
+    soundToggle.checked = Boolean(soundEnabled);
+    soundToggle.addEventListener('change', () => {
+      soundEnabled = soundToggle.checked;
+      SafeStore.set(KEYS.SOUND_ENABLED, soundEnabled);
+      if (soundEnabled) unlockAudioContext();
+      haptic('light');
+      showToast(soundEnabled ? 'Garso signalas įjungtas' : 'Garso signalas išjungtas');
+    });
+
+    document.getElementById('test-sound-btn').addEventListener('click', () => {
+      playDoubleBeep(true);
+      haptic('medium');
+      showToast('Sugrotas poilsio pabaigos signalas');
+    });
+
+    document.querySelectorAll('.theme-card').forEach(card => {
+      card.addEventListener('click', () => {
+        applyTheme(card.dataset.themeVal);
+        haptic('light');
+      });
+    });
+
+    document.getElementById('export-program-json-btn').addEventListener('click', () => {
+      const jsonStr = JSON.stringify(program);
+      const ta = document.createElement('textarea');
+      ta.value = jsonStr;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      haptic('success');
+      showToast('Programos JSON nukopijuotas į iškarpinę!');
+    });
+
+    const importModal = document.getElementById('import-modal');
+    document.getElementById('open-import-modal-btn').addEventListener('click', () => {
+      document.getElementById('import-json-textarea').value = '';
+      importModal.classList.remove('hidden');
+    });
+    document.getElementById('cancel-import-modal').addEventListener('click', () => importModal.classList.add('hidden'));
+    document.getElementById('confirm-import-btn').addEventListener('click', () => {
+      try {
+        const parsed = JSON.parse(document.getElementById('import-json-textarea').value.trim());
+        if (!isValidProgramSchema(parsed)) throw new Error('Invalid schema');
+        program = normalizeProgram(parsed);
+        activeDayIdx = 0;
+        importModal.classList.add('hidden');
+        saveProgramChanges();
+        haptic('success');
+        showToast('Programa sėkmingai įkelta!');
+      } catch (err) {
+        showToast('Neteisingas programos JSON formatas.');
+      }
+    });
+
+    document.getElementById('reset-default-program-btn').addEventListener('click', () => {
+      showConfirm(
+        'Atstatyti pradinę programą?',
+        'Visi redaguoti pratimai bus pakeisti bazine 3 dienų programa (istorija išliks).',
+        () => {
+          program = cloneDefaultProgram();
+          activeDayIdx = 0;
+          saveProgramChanges();
+          haptic('success');
+          showToast('Bazinė 3 dienų programa atstatyta!');
+        }
+      );
+    });
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+      const targetView = document.getElementById(`view-${tabName}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.nav === tabName;
+        btn.className = `nav-btn flex flex-col items-center justify-center gap-1 transition ${
+          active ? 'text-app-accent' : 'text-app-muted hover:text-app-text'
+        }`;
+      });
+
+      if (tabName === 'workout') renderWorkoutView();
+      if (tabName === 'progress') renderProgressView();
+      if (tabName === 'editor') renderEditorView();
+      if (tabName === 'history') renderHistoryView();
+      haptic('light');
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.nav));
+    });
+
+    /**
+     * 19. TRENIRUOTĖS ĮVYKIŲ DELEGAVIMAS
+     */
+    document.getElementById('day-tabs-container').addEventListener('click', e => {
+      const btn = e.target.closest('.day-tab-btn');
+      if (btn) {
+        activeDayIdx = Number(btn.dataset.dayIdx);
+        SafeStore.set(KEYS.ACTIVE_DAY_IDX, activeDayIdx);
+        haptic('light');
+        renderWorkoutView();
+      }
+    });
+
+    document.getElementById('workout-container').addEventListener('input', e => {
+      const t = e.target;
+      if (t.classList.contains('set-val-input')) {
+        const { exId, sIdx, field } = t.dataset;
+        if (draft[exId] && draft[exId].sets && draft[exId].sets[Number(sIdx)]) {
+          draft[exId].sets[Number(sIdx)][field] = t.value;
+          SafeStore.set(KEYS.DRAFT, draft);
+          updateWorkoutProgress();
+        }
+      } else if (t.classList.contains('drop-val-input')) {
+        const { exId, dropField } = t.dataset;
+        if (draft[exId] && draft[exId].dropSet) {
+          draft[exId].dropSet[dropField] = t.value;
+          SafeStore.set(KEYS.DRAFT, draft);
+          updateWorkoutProgress();
+        }
+      } else if (t.classList.contains('cardio-min-input')) {
+        const exId = t.dataset.cardioMinEx;
+        if (draft[exId]) {
+          draft[exId].minutes = t.value;
+          SafeStore.set(KEYS.DRAFT, draft);
+        }
+      }
+    });
+
+    document.getElementById('workout-container').addEventListener('click', e => {
+      const fillBtn = e.target.closest('.fill-prev-btn');
+      if (fillBtn) {
+        const exId = fillBtn.dataset.fillPrev;
+        const prev = lastRecords[exId];
+        if (prev && Array.isArray(prev.sets) && draft[exId] && Array.isArray(draft[exId].sets)) {
+          draft[exId].sets.forEach((s, idx) => {
+            if (prev.sets[idx]) {
+              s.w = prev.sets[idx].w || '';
+              s.r = prev.sets[idx].r || '';
+            }
+          });
+          if (prev.dropSet && draft[exId].dropSet) {
+            draft[exId].dropSet.w = prev.dropSet.w || '';
+            draft[exId].dropSet.r = prev.dropSet.r || '';
+          }
+          SafeStore.set(KEYS.DRAFT, draft);
+          haptic('medium');
+          renderWorkoutView();
+          showToast('Praėjusios treniruotės svoriai užpildyti!');
+        }
+        return;
+      }
+
+      const checkBtn = e.target.closest('.set-done-btn');
+      if (checkBtn) {
+        unlockAudioContext();
+        const { exId, sIdx, rest } = checkBtn.dataset;
+        if (draft[exId] && draft[exId].sets && draft[exId].sets[Number(sIdx)]) {
+          const setObj = draft[exId].sets[Number(sIdx)];
+          setObj.done = !setObj.done;
+          SafeStore.set(KEYS.DRAFT, draft);
+          haptic(setObj.done ? 'medium' : 'light');
+
+          if (setObj.done && !sessionStartTimestamp) {
+            sessionStartTimestamp = Date.now();
+            SafeStore.set(KEYS.SESSION_START, sessionStartTimestamp);
+          }
+
+          if (setObj.done) startRestTimer(Number(rest) || 90);
+          renderWorkoutView();
+        }
+        return;
+      }
+
+      const cardioBtn = e.target.closest('.cardio-toggle-btn');
+      if (cardioBtn) {
+        const exId = cardioBtn.dataset.cardioEx;
+        if (draft[exId]) {
+          draft[exId].done = !draft[exId].done;
+          SafeStore.set(KEYS.DRAFT, draft);
+          haptic('medium');
+
+          if (draft[exId].done && !sessionStartTimestamp) {
+            sessionStartTimestamp = Date.now();
+            SafeStore.set(KEYS.SESSION_START, sessionStartTimestamp);
+          }
+          renderWorkoutView();
+        }
+      }
+    });
+
+    document.getElementById('reset-checks-btn').addEventListener('click', () => {
+      showConfirm('Nuimti varneles?', 'Visos šios dienos varnelės bus nuimtos, bet įvesti svoriai liks.', () => {
+        const day = program[activeDayIdx];
+        day.exercises.forEach(ex => {
+          if (draft[ex.id]) {
+            if (ex.type === 'cardio') draft[ex.id].done = false;
+            else if (Array.isArray(draft[ex.id].sets)) draft[ex.id].sets.forEach(s => (s.done = false));
+          }
+        });
+        SafeStore.set(KEYS.DRAFT, draft);
+        stopRestTimer();
+        renderWorkoutView();
+        showToast('Varnelės išvalytos');
+      });
+    });
+
+    // Pradinis programėlės atvaizdavimas
+    renderWorkoutView();
+
+    // Sinchronizacija su Telegram CloudStorage (jei yra)
+    SafeStore.syncCloud(() => {
+      program = normalizeProgram(SafeStore.get(KEYS.PROGRAM, null));
+      lastRecords = SafeStore.get(KEYS.LAST_RECORDS, {});
+      draft = SafeStore.get(KEYS.DRAFT, {});
+      history = SafeStore.get(KEYS.HISTORY, []);
+      activeDayIdx = parseInt(SafeStore.get(KEYS.ACTIVE_DAY_IDX, 0), 10) || 0;
+      if (activeDayIdx < 0 || activeDayIdx >= program.length) activeDayIdx = 0;
+      sessionStartTimestamp = SafeStore.get(KEYS.SESSION_START, null);
+      currentTheme = SafeStore.get(KEYS.THEME, 'dark-gold');
+      soundEnabled = Boolean(SafeStore.get(KEYS.SOUND_ENABLED, true));
+      currentDensity = SafeStore.get(KEYS.DENSITY, 'default');
+      currentScale = SafeStore.get(KEYS.SCALE, 'md');
+      customGreeting = String(SafeStore.get(KEYS.CUSTOM_GREETING, '') || '').trim();
+      customGreetingInput.value = customGreeting;
+      updateHeaderGreetingUI();
+      soundToggle.checked = soundEnabled;
+      applyTheme(currentTheme);
+      applyDensity(currentDensity);
+      applyScale(currentScale);
+      renderWorkoutView();
+    });
+  </script>
+</body>
+</html>
