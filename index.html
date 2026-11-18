@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.14 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.15 — Telegram Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -459,7 +459,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-extrabold">GymPro Tracker</span>
-                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.14</span>
+                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.15</span>
               </div>
               <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
             </div>
@@ -521,7 +521,7 @@
             <p class="leading-relaxed text-app-muted"><strong class="text-app-text">Treniruotė:</strong> Žymėk savo serijas, pasinaudok automatiniu poilsio laikrodžiu tarp serijų ir vienu paspaudimu užpildyk praeitos treniruotės svorius.</p>
           </div>
           <div class="p-3 rounded-xl bg-app-elevated border border-app-border flex items-start gap-2.5">
-            <span class="text-base shrink-0 mt-0.5">📈</span>
+            <span class="text-base shrink-0 mt-0.5">⚡</span>
             <p class="leading-relaxed text-app-muted"><strong class="text-app-text">Progresas ir PR:</strong> Stebėk jėgos augimo grafikus ir apskaičiuotą 1RM.</p>
           </div>
           <div class="p-3 rounded-xl bg-app-elevated border border-app-border flex items-start gap-2.5">
@@ -676,13 +676,13 @@
         <div id="summary-exercises-list" class="space-y-1.5 bg-app-elevated/60 border border-app-border rounded-xl p-3 max-h-44 overflow-y-auto mb-4 text-xs"></div>
 
         <div class="space-y-2">
-          <p class="text-[11px] font-bold text-app-muted uppercase tracking-wider">Išsaugoti arba dalintis ataskaita:</p>
-          <button id="summary-open-png" type="button" class="w-full min-h-[46px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText font-extrabold text-xs flex items-center justify-center gap-2 transition active:scale-[0.98]">
-            <span>🖼️ Peržiūrėti / Išsaugoti PNG kortelę</span>
+          <button id="summary-direct-share" type="button" class="w-full min-h-[48px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText font-extrabold text-sm shadow-lg flex items-center justify-center gap-2 transition active:scale-[0.98]">
+            <span>📤 Dalintis rezultatais</span>
           </button>
-          <div class="grid grid-cols-2 gap-2">
-            <button id="summary-open-csv" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5"><span>📊 CSV (Excel)</span></button>
-            <button id="summary-open-txt" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5"><span>📄 TXT ataskaita</span></button>
+          <div class="grid grid-cols-3 gap-2">
+            <button id="summary-open-png" type="button" class="min-h-[42px] px-2.5 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1"><span>🖼️ PNG</span></button>
+            <button id="summary-open-csv" type="button" class="min-h-[42px] px-2.5 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1"><span>📊 CSV</span></button>
+            <button id="summary-open-txt" type="button" class="min-h-[42px] px-2.5 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1"><span>📄 TXT</span></button>
           </div>
         </div>
       </div>
@@ -692,17 +692,14 @@
     <div id="png-preview-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
       <div class="w-full max-w-[460px] bg-app-card border border-app-border rounded-2xl p-4 shadow-2xl flex flex-col max-h-[92vh]">
         <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-app-border">
-          <div>
-            <h3 class="text-sm font-extrabold">Treniruotės PNG kortelė</h3>
-            <p class="text-[11px] text-app-accent font-semibold">Palaikyk pirštą ant paveikslėlio → Išsaugoti galerijoje</p>
-          </div>
+          <h3 class="text-sm font-extrabold">Treniruotės kortelė</h3>
           <button id="close-png-modal" type="button" class="p-2 rounded-xl bg-app-input text-app-muted hover:text-app-text">✕</button>
         </div>
         <div class="my-3 flex-1 overflow-y-auto rounded-xl border border-app-border bg-black/40 flex items-center justify-center">
           <img id="png-preview-img" src="" alt="Treniruotės kortelė" class="w-full h-auto rounded-xl block" />
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <button id="share-png-btn" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold active:scale-95 transition flex items-center justify-center gap-1.5"><span>📤 Dalintis PNG</span></button>
+          <button id="share-png-btn" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold active:scale-95 transition flex items-center justify-center gap-1.5"><span>📤 Dalintis</span></button>
           <button id="close-png-modal-bottom" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold active:scale-95 transition">Uždaryti</button>
         </div>
       </div>
@@ -759,7 +756,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.14</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.15</span>
         </div>
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
           <div class="text-[10px] font-extrabold uppercase text-app-muted">Kas naujo:</div>
@@ -786,8 +783,8 @@
   <script>
     'use strict';
 
-    const APP_VERSION = '1.14';
-    // RELEASE_NOTES: Sutvarkytas pradinis paleidimas ir pridėtas klaidų detektorius, jei failas įkeliamas nepilnai.
+    const APP_VERSION = '1.15';
+    // RELEASE_NOTES: Tiesioginis dalinimosi mygtukas baigus treniruotę, švaresnė ataskaitos kortelė ir sustiprinta vibracija.
 
     function switchTab(tabName) {
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -1121,6 +1118,32 @@
       } catch (e) {}
     }
 
+    function pulseStrongVibration() {
+      try {
+        if (navigator && typeof navigator.vibrate === 'function') {
+          navigator.vibrate([400, 120, 400, 120, 600]);
+        }
+      } catch (e) {}
+
+      try {
+        if (tg && tg.HapticFeedback) {
+          const delays = [0, 180, 360, 560, 780];
+          delays.forEach((ms, idx) => {
+            setTimeout(() => {
+              try {
+                if (idx === delays.length - 1 && typeof tg.HapticFeedback.notificationOccurred === 'function') {
+                  tg.HapticFeedback.notificationOccurred('warning');
+                }
+                if (typeof tg.HapticFeedback.impactOccurred === 'function') {
+                  tg.HapticFeedback.impactOccurred('heavy');
+                }
+              } catch (err) {}
+            }, ms);
+          });
+        }
+      } catch (e) {}
+    }
+
     function triggerRestEndAlert(forceTest = false) {
       if (forceTest || settings.soundEnabled) {
         try {
@@ -1147,15 +1170,7 @@
         } catch (e) {}
       }
       if (forceTest || settings.vibrationEnabled) {
-        try {
-          if (navigator && typeof navigator.vibrate === 'function') navigator.vibrate([350, 120, 350, 120, 550]);
-        } catch (e) {}
-        try {
-          if (tg && tg.HapticFeedback) {
-            tg.HapticFeedback.notificationOccurred('success');
-            setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 250);
-          }
-        } catch (e) {}
+        pulseStrongVibration();
       }
     }
 
@@ -1990,7 +2005,7 @@
 
     let currentPngDataUrl = '', currentPngFilename = 'Treniruote.png';
 
-    function openPngPreviewModal(record) {
+    function generatePngDataUrlForRecord(record) {
       const styles = getComputedStyle(document.documentElement);
       const bg = styles.getPropertyValue('--canvas-bg').trim() || '#0e1117';
       const cardBg = styles.getPropertyValue('--canvas-card').trim() || '#161b24';
@@ -2050,10 +2065,58 @@
       ctx.fillStyle = textMuted; ctx.font = '600 18px Inter, sans-serif';
       ctx.fillText(`GymPro Tracker V${APP_VERSION} • Telegram Mini App`, 48, height - 26);
 
-      currentPngDataUrl = canvas.toDataURL('image/png');
-      currentPngFilename = `Treniruote_${record.date}.png`;
+      return {
+        dataUrl: canvas.toDataURL('image/png'),
+        filename: `Treniruote_${record.date}.png`
+      };
+    }
+
+    function openPngPreviewModal(record) {
+      const generated = generatePngDataUrlForRecord(record);
+      currentPngDataUrl = generated.dataUrl;
+      currentPngFilename = generated.filename;
       document.getElementById('png-preview-img').src = currentPngDataUrl;
       document.getElementById('png-preview-modal').classList.remove('hidden');
+    }
+
+    async function shareWorkoutDirectly(record) {
+      if (!record) return;
+      haptic('medium');
+      const generated = generatePngDataUrlForRecord(record);
+      currentPngDataUrl = generated.dataUrl;
+      currentPngFilename = generated.filename;
+      const reportText = buildTxtReport(record);
+
+      try {
+        const res = await fetch(generated.dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], generated.filename, { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: record.dayTitle,
+            text: reportText
+          });
+          return;
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+
+      try {
+        if (navigator.share) {
+          await navigator.share({
+            title: record.dayTitle,
+            text: reportText
+          });
+          return;
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') return;
+      }
+
+      openPngPreviewModal(record);
     }
 
     document.getElementById('close-png-modal').addEventListener('click', () => document.getElementById('png-preview-modal').classList.add('hidden'));
@@ -2066,11 +2129,11 @@
         const blob = await res.blob();
         const file = new File([blob], currentPngFilename, { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Treniruotės ataskaita', text: 'Mano treniruotės rezultatai (GymPro Tracker)' });
+          await navigator.share({ files: [file], title: 'Treniruotės ataskaita' });
           return;
         }
       } catch (e) {}
-      showToast('Palaikykite pirštą ant paveikslėlio ir pasirinkite „Išsaugoti galerijoje“!');
+      showToast('Palaikykite pirštą ant paveikslėlio ir išsaugokite galerijoje.');
     });
 
     function buildTxtReport(record) {
@@ -2084,7 +2147,8 @@
         `----------------------------------------`
       ];
       record.exercises.forEach((ex, i) => lines.push(`${i + 1}. ${ex.name}: ${formatExerciseSummaryLine(ex)}`));
-      return lines.join('\n');
+      return lines.join('
+');
     }
 
     function buildCsvReport(record) {
@@ -2101,7 +2165,8 @@
           });
         }
       });
-      return rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';')).join('\n');
+      return rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';')).join('
+');
     }
 
     let currentExportText = '', currentExportTitle = '';
@@ -2155,6 +2220,7 @@
     }
 
     document.getElementById('close-summary-modal').addEventListener('click', () => document.getElementById('summary-modal').classList.add('hidden'));
+    document.getElementById('summary-direct-share').addEventListener('click', () => currentSummaryRecord && shareWorkoutDirectly(currentSummaryRecord));
     document.getElementById('summary-open-png').addEventListener('click', () => currentSummaryRecord && openPngPreviewModal(currentSummaryRecord));
     document.getElementById('summary-open-csv').addEventListener('click', () => currentSummaryRecord && openTextExportModal('CSV (Excel) duomenys', buildCsvReport(currentSummaryRecord)));
     document.getElementById('summary-open-txt').addEventListener('click', () => currentSummaryRecord && openTextExportModal('TXT treniruotės ataskaita', buildTxtReport(currentSummaryRecord)));
@@ -2431,7 +2497,8 @@
             </div>
           </div>
           <div class="bg-app-elevated/60 rounded-xl p-2.5">${exListHtml}</div>
-          <div class="grid grid-cols-3 gap-1.5 pt-1">
+          <div class="grid grid-cols-4 gap-1.5 pt-1">
+            <button type="button" data-hist-share="${idx}" class="min-h-[38px] rounded-xl bg-app-accent text-app-accentText text-[11px] font-extrabold active:scale-95 transition">📤 Dalintis</button>
             <button type="button" data-hist-png="${idx}" class="min-h-[38px] rounded-xl bg-app-accentSoft text-app-accent text-[11px] font-extrabold active:scale-95 transition">🖼️ PNG</button>
             <button type="button" data-hist-csv="${idx}" class="min-h-[38px] rounded-xl bg-app-elevated border border-app-border text-[11px] font-bold active:scale-95 transition">📊 CSV</button>
             <button type="button" data-hist-txt="${idx}" class="min-h-[38px] rounded-xl bg-app-elevated border border-app-border text-[11px] font-bold active:scale-95 transition">📄 TXT</button>
@@ -2474,6 +2541,7 @@
         });
         return;
       }
+      if (btn.dataset.histShare !== undefined) shareWorkoutDirectly(history[Number(btn.dataset.histShare)]);
       if (btn.dataset.histPng !== undefined) openPngPreviewModal(history[Number(btn.dataset.histPng)]);
       if (btn.dataset.histCsv !== undefined) openTextExportModal('CSV (Excel) duomenys', buildCsvReport(history[Number(btn.dataset.histCsv)]));
       if (btn.dataset.histTxt !== undefined) openTextExportModal('TXT treniruotės ataskaita', buildTxtReport(history[Number(btn.dataset.histTxt)]));
