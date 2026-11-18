@@ -1,4 +1,4 @@
 {
-  "version": "1.11",
-  "notes": "Nustatyta 1.11 versija su automatiniu atnaujinimų tikrinimu ir istorijos įrašų trynimu."
+  "version": "1.12",
+  "notes": "Pataisytas mygtukų veikimas ir paspaudimų blokavimas Telegram lange."
 }
