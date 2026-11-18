@@ -1,0 +1,46 @@
+name: Automatinis version.json atnaujinimas
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'index.html'
+
+permissions:
+  contents: write
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Atsisiųsti repozitorijos failus
+        uses: actions/checkout@v4
+
+      - name: Ištraukti versiją ir pakeitimus iš index.html į version.json
+        run: |
+          node -e '
+            const fs = require("fs");
+            const html = fs.readFileSync("index.html", "utf8");
+            const verMatch = html.match(/const\s+APP_VERSION\s*=\s*["'\'']([^"'\'']+)["'\'']/);
+            const notesMatch = html.match(/\/\/\s*RELEASE_NOTES:\s*(.+)/);
+            
+            if (verMatch) {
+              const data = {
+                version: verMatch[1].trim(),
+                notes: notesMatch ? notesMatch[1].trim() : "Nauji patobulinimai ir klaidų taisymai."
+              };
+              fs.writeFileSync("version.json", JSON.stringify(data, null, 2) + "\n");
+              console.log("Sugeneruotas version.json:", data);
+            } else {
+              console.log("APP_VERSION nerastas");
+            }
+          '
+
+      - name: Išsaugoti atnaujintą version.json
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add version.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update version.json" && git push)
