@@ -2,7 +2,7 @@
 <html lang="lt" data-theme="dark-neon" data-density="default" data-scale="md">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>GymPro Tracker V4.3.1 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -208,6 +208,34 @@
     html[data-density="compact"] .ex-note-text {
       margin-top: 0.2rem !important;
       line-height: 1.3 !important;
+    }
+
+
+    /* Telegram Fullscreen & Safe Area atstumai (kad nedengtų Close mygtukas ir laikrodis) */
+    :root {
+      --safe-top-total: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
+      --safe-bottom-total: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + var(--tg-content-safe-area-inset-bottom, 0px));
+    }
+
+    body.is-tg-fullscreen {
+      --safe-top-total: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 28px)) + var(--tg-content-safe-area-inset-top, 46px));
+    }
+
+    .view-section > header {
+      padding-top: calc(0.75rem + var(--safe-top-total)) !important;
+    }
+
+    nav.fixed {
+      height: calc(64px + var(--safe-bottom-total)) !important;
+      padding-bottom: var(--safe-bottom-total) !important;
+    }
+
+    #view-workout > div.fixed {
+      bottom: calc(64px + var(--safe-bottom-total)) !important;
+    }
+
+    #toast {
+      top: calc(1rem + var(--safe-top-total)) !important;
     }
 
     /* Plaukiojantis tampomas poilsio laikmatis */
@@ -971,10 +999,44 @@
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
     let tgUser = { id: 'guest', firstName: '' };
 
+    function syncTelegramSafeAreas() {
+      if (!tg) return;
+      const isFs = Boolean(tg.isFullscreen);
+      document.body.classList.toggle('is-tg-fullscreen', isFs);
+
+      const safeTop = (tg.safeAreaInset && typeof tg.safeAreaInset.top === 'number') ? tg.safeAreaInset.top : 0;
+      const contentTop = (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.top === 'number') ? tg.contentSafeAreaInset.top : 0;
+      const safeBottom = (tg.safeAreaInset && typeof tg.safeAreaInset.bottom === 'number') ? tg.safeAreaInset.bottom : 0;
+      const contentBottom = (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.bottom === 'number') ? tg.contentSafeAreaInset.bottom : 0;
+
+      if (safeTop > 0 || contentTop > 0) {
+        document.documentElement.style.setProperty('--safe-top-total', `${safeTop + contentTop}px`);
+      } else if (isFs) {
+        document.documentElement.style.setProperty('--safe-top-total', '74px');
+      } else {
+        document.documentElement.style.removeProperty('--safe-top-total');
+      }
+
+      if (safeBottom > 0 || contentBottom > 0) {
+        document.documentElement.style.setProperty('--safe-bottom-total', `${safeBottom + contentBottom}px`);
+      } else {
+        document.documentElement.style.removeProperty('--safe-bottom-total');
+      }
+    }
+
     try {
       if (tg) {
         if (typeof tg.ready === 'function') tg.ready();
         if (typeof tg.expand === 'function') tg.expand();
+        if (typeof tg.requestFullscreen === 'function') {
+          try { tg.requestFullscreen(); } catch (err) {}
+        }
+        syncTelegramSafeAreas();
+        if (typeof tg.onEvent === 'function') {
+          tg.onEvent('fullscreenChanged', syncTelegramSafeAreas);
+          tg.onEvent('safeAreaChanged', syncTelegramSafeAreas);
+          tg.onEvent('contentSafeAreaChanged', syncTelegramSafeAreas);
+        }
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           tgUser = {
             id: String(tg.initDataUnsafe.user.id || 'guest'),
