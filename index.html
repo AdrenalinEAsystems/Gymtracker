@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.11 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.12 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS -->
@@ -210,31 +210,27 @@
       line-height: 1.3 !important;
     }
 
-    /* Telegram Fullscreen & Safe Area atstumai */
+    /* Safe Area atstumai */
     :root {
-      --safe-top-total: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
-      --safe-bottom-total: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + var(--tg-content-safe-area-inset-bottom, 0px));
-    }
-
-    body.is-tg-fullscreen {
-      --safe-top-total: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 28px)) + var(--tg-content-safe-area-inset-top, 46px));
+      --safe-top-total: env(safe-area-inset-top, 0px);
+      --safe-bottom-total: env(safe-area-inset-bottom, 0px);
     }
 
     .view-section > header {
-      padding-top: calc(0.75rem + var(--safe-top-total)) !important;
+      padding-top: calc(0.75rem + var(--safe-top-total));
     }
 
     nav.fixed {
-      height: calc(64px + var(--safe-bottom-total)) !important;
-      padding-bottom: var(--safe-bottom-total) !important;
+      height: calc(64px + var(--safe-bottom-total));
+      padding-bottom: var(--safe-bottom-total);
     }
 
     #view-workout > div.fixed {
-      bottom: calc(64px + var(--safe-bottom-total)) !important;
+      bottom: calc(64px + var(--safe-bottom-total));
     }
 
     #toast {
-      top: calc(1rem + var(--safe-top-total)) !important;
+      top: calc(1rem + var(--safe-top-total));
     }
 
     #rest-timer-widget {
@@ -648,7 +644,7 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-extrabold">GymPro Tracker</span>
-              <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.11</span>
+              <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.12</span>
             </div>
             <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
           </div>
@@ -974,13 +970,43 @@
     'use strict';
 
     /**
-     * DABARTINĖ PROGRAMĖLĖS VERSIJA (GitHub Actions automatiškai įrašys į version.json)
+     * DABARTINĖ PROGRAMĖLĖS VERSIJA
      */
-    const APP_VERSION = '1.11';
-    // RELEASE_NOTES: Nustatyta 1.11 versija su automatiniu atnaujinimų tikrinimu ir istorijos įrašų trynimu.
+    const APP_VERSION = '1.12';
+    // RELEASE_NOTES: Pataisytas mygtukų veikimas ir paspaudimų blokavimas Telegram lange.
 
     /**
-     * 1. PRADINĖ TUŠČIA PROGRAMA
+     * 1. PIRMAUSIA PRIJUNGIAME APATINĘ NAVIGACIJĄ, KAD JI VEIKTŲ BET KOKIU ATVEJU
+     */
+    function switchTab(tabName) {
+      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
+      const targetView = document.getElementById(`view-${tabName}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const active = btn.dataset.nav === tabName;
+        btn.className = `nav-btn flex flex-col items-center justify-center gap-1 transition ${
+          active ? 'text-app-accent' : 'text-app-muted hover:text-app-text'
+        }`;
+      });
+
+      try {
+        if (tabName === 'workout' && typeof renderWorkoutView === 'function') renderWorkoutView();
+        if (tabName === 'progress' && typeof renderProgressView === 'function') renderProgressView();
+        if (tabName === 'editor' && typeof renderEditorView === 'function') renderEditorView();
+        if (tabName === 'history' && typeof renderHistoryView === 'function') renderHistoryView();
+        if (typeof haptic === 'function') haptic('light');
+      } catch (err) {
+        console.error('Tab render error:', err);
+      }
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.nav));
+    });
+
+    /**
+     * 2. BAZINĖS KONSTANTOS IR PAGALBININKAI
      */
     const LB_TO_KG = 0.45359237;
 
@@ -1006,62 +1032,25 @@
       return JSON.parse(JSON.stringify(DEFAULT_PROGRAM));
     }
 
-    /**
-     * 2. SAUGUS HTML EKRANAVIMAS
-     */
     function escapeHtml(str) {
       return String(str ?? '')
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/'/g, ''');
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     /**
-     * 3. TELEGRAM WEBAPP IR DUOMENŲ SAUGYKLA
+     * 3. TELEGRAM WEBAPP SDK (SAUGUS PALEIDIMAS BE FULLSCREEN BLOKAVIMO)
      */
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
     let tgUser = { id: 'guest', firstName: '' };
-
-    function syncTelegramSafeAreas() {
-      if (!tg) return;
-      const isFs = Boolean(tg.isFullscreen);
-      document.body.classList.toggle('is-tg-fullscreen', isFs);
-
-      const safeTop = (tg.safeAreaInset && typeof tg.safeAreaInset.top === 'number') ? tg.safeAreaInset.top : 0;
-      const contentTop = (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.top === 'number') ? tg.contentSafeAreaInset.top : 0;
-      const safeBottom = (tg.safeAreaInset && typeof tg.safeAreaInset.bottom === 'number') ? tg.safeAreaInset.bottom : 0;
-      const contentBottom = (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.bottom === 'number') ? tg.contentSafeAreaInset.bottom : 0;
-
-      if (safeTop > 0 || contentTop > 0) {
-        document.documentElement.style.setProperty('--safe-top-total', `${safeTop + contentTop}px`);
-      } else if (isFs) {
-        document.documentElement.style.setProperty('--safe-top-total', '74px');
-      } else {
-        document.documentElement.style.removeProperty('--safe-top-total');
-      }
-
-      if (safeBottom > 0 || contentBottom > 0) {
-        document.documentElement.style.setProperty('--safe-bottom-total', `${safeBottom + contentBottom}px`);
-      } else {
-        document.documentElement.style.removeProperty('--safe-bottom-total');
-      }
-    }
 
     try {
       if (tg) {
         if (typeof tg.ready === 'function') tg.ready();
         if (typeof tg.expand === 'function') tg.expand();
-        if (typeof tg.requestFullscreen === 'function') {
-          try { tg.requestFullscreen(); } catch (err) {}
-        }
-        syncTelegramSafeAreas();
-        if (typeof tg.onEvent === 'function') {
-          tg.onEvent('fullscreenChanged', syncTelegramSafeAreas);
-          tg.onEvent('safeAreaChanged', syncTelegramSafeAreas);
-          tg.onEvent('contentSafeAreaChanged', syncTelegramSafeAreas);
-        }
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           tgUser = {
             id: String(tg.initDataUnsafe.user.id || 'guest'),
@@ -1132,7 +1121,6 @@
           if (!raw) return undefined;
           return JSON.parse(raw);
         } catch (err) {
-          console.warn('Corrupted localStorage key:', key, err);
           return undefined;
         }
       },
@@ -1140,9 +1128,7 @@
       writeLocal(key, val) {
         try {
           localStorage.setItem(key, JSON.stringify(val));
-        } catch (err) {
-          console.warn('localStorage write error:', err);
-        }
+        } catch (err) {}
       },
 
       writeCloudSafe(key, val) {
@@ -1162,9 +1148,7 @@
           if (serialized.length <= 4096) {
             tg.CloudStorage.setItem(key, serialized);
           }
-        } catch (err) {
-          console.warn('CloudStorage write skipped:', key, err);
-        }
+        } catch (err) {}
       },
 
       set(key, val) {
@@ -1228,9 +1212,7 @@
 
             if (changed && typeof onDone === 'function') onDone();
           });
-        } catch (err) {
-          console.warn('CloudStorage sync error:', err);
-        }
+        } catch (err) {}
       }
     };
 
@@ -1247,17 +1229,11 @@
         const legacyHist = SafeStore.readLocal(`${LEGACY_USER_PREFIX}history`);
         rawHist = Array.isArray(legacyHist) ? legacyHist : [];
       }
+      rawHist = rawHist.filter(item => item && typeof item === 'object' && Array.isArray(item.exercises));
 
       let rawSettings = SafeStore.readLocal(KEYS.SETTINGS);
       if (!rawSettings || typeof rawSettings !== 'object') {
-        rawSettings = {
-          ...DEFAULT_SETTINGS,
-          theme: SafeStore.readLocal(`${LEGACY_USER_PREFIX}theme`) || 'dark-neon',
-          density: SafeStore.readLocal(`${LEGACY_USER_PREFIX}density`) || 'default',
-          scale: SafeStore.readLocal(`${LEGACY_USER_PREFIX}scale`) || 'md',
-          soundEnabled: SafeStore.readLocal(`${LEGACY_USER_PREFIX}sound_enabled`) ?? true,
-          customGreeting: SafeStore.readLocal(`${LEGACY_USER_PREFIX}custom_greeting`) || ''
-        };
+        rawSettings = { ...DEFAULT_SETTINGS };
       } else {
         rawSettings = { ...DEFAULT_SETTINGS, ...rawSettings };
       }
@@ -1265,10 +1241,10 @@
       let rawActive = SafeStore.readLocal(KEYS.ACTIVE);
       if (!rawActive || typeof rawActive !== 'object') {
         rawActive = {
-          activeDayIdx: parseInt(SafeStore.readLocal(`${LEGACY_USER_PREFIX}active_day`), 10) || 0,
-          workoutStartTime: SafeStore.readLocal(`${LEGACY_USER_PREFIX}session_start`) || null,
+          activeDayIdx: 0,
+          workoutStartTime: null,
           restEndTime: null,
-          draft: SafeStore.readLocal(`${LEGACY_USER_PREFIX}draft`) || {}
+          draft: {}
         };
       }
 
@@ -1291,21 +1267,10 @@
     let settings = state.settings;
     let activeState = state.active;
 
-    function persistActiveState() {
-      SafeStore.set(KEYS.ACTIVE, activeState);
-    }
-
-    function persistSettings() {
-      SafeStore.set(KEYS.SETTINGS, settings);
-    }
-
-    function persistHistory() {
-      SafeStore.set(KEYS.HISTORY, history);
-    }
-
-    function persistProgram() {
-      SafeStore.set(KEYS.PROGRAM, program);
-    }
+    function persistActiveState() { SafeStore.set(KEYS.ACTIVE, activeState); }
+    function persistSettings() { SafeStore.set(KEYS.SETTINGS, settings); }
+    function persistHistory() { SafeStore.set(KEYS.HISTORY, history); }
+    function persistProgram() { SafeStore.set(KEYS.PROGRAM, program); }
 
     /**
      * 5. PASVEIKINIMAS VIRŠUJE
@@ -1336,7 +1301,7 @@
     updateHeaderGreetingUI();
 
     /**
-     * 6. FONINIS GARSO PALAIKYMAS, GARSO SIGNALAS, VIBRACIJA IR WAKE LOCK
+     * 6. GARSO SIGNALAS, VIBRACIJA IR WAKE LOCK
      */
     let audioCtx = null;
     let silentKeepAliveAudio = null;
@@ -1356,13 +1321,6 @@
         if (playPromise && typeof playPromise.catch === 'function') {
           playPromise.catch(() => {});
         }
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.metadata = new MediaMetadata({
-            title: 'Poilsio laikmatis',
-            artist: 'GymPro Tracker'
-          });
-          navigator.mediaSession.playbackState = 'playing';
-        }
       } catch (e) {}
     }
 
@@ -1371,9 +1329,6 @@
         if (silentKeepAliveAudio) {
           silentKeepAliveAudio.pause();
           silentKeepAliveAudio.currentTime = 0;
-        }
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.playbackState = 'none';
         }
       } catch (e) {}
     }
@@ -1398,24 +1353,19 @@
               const gain = audioCtx.createGain();
               osc.type = 'triangle';
               osc.frequency.setValueAtTime(freq, startTime);
-
               gain.gain.setValueAtTime(0.001, startTime);
               gain.gain.exponentialRampToValueAtTime(0.45, startTime + 0.015);
               gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
               osc.connect(gain);
               gain.connect(audioCtx.destination);
               osc.start(startTime);
               osc.stop(startTime + duration + 0.02);
             };
-
             scheduleTone(now, 880, 0.14);
             scheduleTone(now + 0.19, 880, 0.14);
             scheduleTone(now + 0.38, 1318.51, 0.24);
           }
-        } catch (e) {
-          console.warn('Audio playback skipped:', e);
-        }
+        } catch (e) {}
       }
 
       if (forceTest || settings.vibrationEnabled) {
@@ -1428,7 +1378,6 @@
           if (tg && tg.HapticFeedback) {
             tg.HapticFeedback.notificationOccurred('success');
             setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 250);
-            setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 500);
           }
         } catch (e) {}
       }
@@ -1439,17 +1388,13 @@
         if (settings.wakeLockEnabled) {
           if ('wakeLock' in navigator && !wakeLockSentinel) {
             wakeLockSentinel = await navigator.wakeLock.request('screen');
-            wakeLockSentinel.addEventListener('release', () => {
-              wakeLockSentinel = null;
-            });
+            wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
           }
         } else if (wakeLockSentinel) {
           await wakeLockSentinel.release();
           wakeLockSentinel = null;
         }
-      } catch (e) {
-        console.warn('WakeLock skipped:', e);
-      }
+      } catch (e) {}
     }
 
     /**
@@ -1691,7 +1636,6 @@
      */
     const timerWidget = document.getElementById('rest-timer-widget');
     const timerDisplay = document.getElementById('timer-display');
-    let globalTickInterval = null;
 
     function applySavedTimerPosition() {
       if (settings.timerPos && typeof settings.timerPos.left === 'number' && typeof settings.timerPos.top === 'number') {
@@ -1756,12 +1700,11 @@
       timerWidget.classList.add('hidden');
     }
 
-    globalTickInterval = setInterval(syncTimersWithRealClock, 400);
+    setInterval(syncTimersWithRealClock, 400);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         syncTimersWithRealClock();
         syncWakeLock();
-        checkForAppUpdate(false);
       }
     });
     window.addEventListener('focus', syncTimersWithRealClock);
@@ -3102,7 +3045,7 @@
     });
 
     /**
-     * 19. NUSTATYMAI IR NAVIGACIJA (TAB 5)
+     * 19. NUSTATYMAI (TAB 5)
      */
     const customGreetingInput = document.getElementById('custom-greeting-input');
     const clearGreetingBtn = document.getElementById('clear-greeting-btn');
@@ -3319,29 +3262,6 @@
       );
     });
 
-    function switchTab(tabName) {
-      document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
-      const targetView = document.getElementById(`view-${tabName}`);
-      if (targetView) targetView.classList.remove('hidden');
-
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        const active = btn.dataset.nav === tabName;
-        btn.className = `nav-btn flex flex-col items-center justify-center gap-1 transition ${
-          active ? 'text-app-accent' : 'text-app-muted hover:text-app-text'
-        }`;
-      });
-
-      if (tabName === 'workout') renderWorkoutView();
-      if (tabName === 'progress') renderProgressView();
-      if (tabName === 'editor') renderEditorView();
-      if (tabName === 'history') renderHistoryView();
-      haptic('light');
-    }
-
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => switchTab(btn.dataset.nav));
-    });
-
     /**
      * 20. TRENIRUOTĖS ĮVYKIŲ DELEGAVIMAS
      */
@@ -3540,28 +3460,35 @@
       window.location.replace(nextUrl.toString());
     });
 
-    renderWorkoutView();
-    syncTimersWithRealClock();
-    setTimeout(() => checkForAppUpdate(false), 1200);
-
-    SafeStore.syncCloud(() => {
-      const refreshed = loadInitialState();
-      program = refreshed.program;
-      history = refreshed.history;
-      settings = refreshed.settings;
-      activeState = refreshed.active;
-      customGreetingInput.value = settings.customGreeting || '';
-      updateHeaderGreetingUI();
-      showRestTimerToggle.checked = Boolean(settings.showRestTimer);
-      soundToggle.checked = Boolean(settings.soundEnabled);
-      vibrationToggle.checked = Boolean(settings.vibrationEnabled);
-      wakeLockToggle.checked = Boolean(settings.wakeLockEnabled);
-      applyTheme(settings.theme);
-      applyDensity(settings.density);
-      applyScale(settings.scale);
-      syncWakeLock();
+    try {
       renderWorkoutView();
       syncTimersWithRealClock();
+    } catch (err) {
+      console.error('Initial render error:', err);
+    }
+
+    setTimeout(() => checkForAppUpdate(false), 1500);
+
+    SafeStore.syncCloud(() => {
+      try {
+        const refreshed = loadInitialState();
+        program = refreshed.program;
+        history = refreshed.history;
+        settings = refreshed.settings;
+        activeState = refreshed.active;
+        customGreetingInput.value = settings.customGreeting || '';
+        updateHeaderGreetingUI();
+        showRestTimerToggle.checked = Boolean(settings.showRestTimer);
+        soundToggle.checked = Boolean(settings.soundEnabled);
+        vibrationToggle.checked = Boolean(settings.vibrationEnabled);
+        wakeLockToggle.checked = Boolean(settings.wakeLockEnabled);
+        applyTheme(settings.theme);
+        applyDensity(settings.density);
+        applyScale(settings.scale);
+        syncWakeLock();
+        renderWorkoutView();
+        syncTimersWithRealClock();
+      } catch (err) {}
     });
   </script>
 </body>
