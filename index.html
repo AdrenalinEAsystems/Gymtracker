@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.12 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.13 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS -->
@@ -639,18 +639,24 @@
           </button>
         </section>
 
-        <!-- Programėlės versija ir atnaujinimų tikrinimas -->
-        <section class="bg-app-card border border-app-border rounded-2xl p-4 flex items-center justify-between gap-3">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-extrabold">GymPro Tracker</span>
-              <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.12</span>
-            </div>
-            <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
-          </div>
-          <button id="manual-check-update-btn" type="button" class="min-h-[38px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-extrabold hover:opacity-90 active:scale-95 transition shrink-0">
-            🔄 Tikrinti
+        <!-- Programėlės gidas ir versija -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
+          <button id="open-welcome-guide-btn" type="button" class="w-full min-h-[42px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-extrabold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-2">
+            <span>📖 Programėlės gidas (kaip naudotis?)</span>
           </button>
+
+          <div class="pt-2.5 border-t border-app-border/70 flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold">GymPro Tracker</span>
+                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.13</span>
+              </div>
+              <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
+            </div>
+            <button id="manual-check-update-btn" type="button" class="min-h-[38px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-extrabold hover:opacity-90 active:scale-95 transition shrink-0">
+              🔄 Tikrinti
+            </button>
+          </div>
         </section>
       </main>
     </div>
@@ -693,6 +699,61 @@
         <span class="text-[10px] font-bold">Nustatymai</span>
       </button>
     </nav>
+
+    <!-- ==================== MODALAS: PASISVEIKINIMAS IR INSTRUKCIJA ==================== -->
+    <div id="welcome-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="bg-app-card border border-app-accent/40 rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] p-5 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-3">
+            <span class="w-11 h-11 rounded-2xl bg-app-accentSoft border border-app-accent/35 text-2xl flex items-center justify-center shrink-0">💪</span>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-app-accent block">GymPro Tracker</span>
+              <h3 id="welcome-greeting-title" class="text-lg font-black leading-tight">Sveikas atvykęs!</h3>
+            </div>
+          </div>
+          <button id="close-welcome-x-btn" type="button" class="p-2 rounded-xl bg-app-input text-app-muted hover:text-app-text">✕</button>
+        </div>
+
+        <p class="text-xs text-app-muted leading-relaxed">
+          Tai tavo asmeninis treniruočių dienoraštis tiesiai Telegrame. Visi pratimai, rezultatai ir progresas automatiškai išsaugomi tavo Telegram paskyroje.
+        </p>
+
+        <div class="space-y-2.5 text-xs">
+          <div class="p-3 rounded-xl bg-app-elevated border border-app-border flex items-start gap-2.5">
+            <span class="text-base shrink-0 mt-0.5">📝</span>
+            <p class="leading-relaxed text-app-muted"><strong class="text-app-text">Programa:</strong> Susikurk savo treniruočių dienas ir pratimus (serijos, poilsio laikas).</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-app-elevated border border-app-border flex items-start gap-2.5">
+            <span class="text-base shrink-0 mt-0.5">⚡</span>
+            <p class="leading-relaxed text-app-muted"><strong class="text-app-text">Treniruotė:</strong> Žymėk savo serijas, pasinaudok automatiniu poilsio laikrodžiu tarp serijų ir vienu paspaudimu užpildyk praeitos treniruotės svorius.</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-app-elevated border border-app-border flex items-start gap-2.5">
+            <span class="text-base shrink-0 mt-0.5">📈</span>
+            <p class="leading-relaxed text-app-muted"><strong class="text-app-text">Progresas ir PR:</strong> Stebėk jėgos augimo grafikus ir apskaičiuotą 1RM.</p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-app-elevated border border-app-border flex items-start gap-2.5">
+            <span class="text-base shrink-0 mt-0.5">🖼️</span>
+            <p class="leading-relaxed text-app-muted"><strong class="text-app-text">Istorija ir ataskaitos:</strong> Automatinis treniruotės išsaugojimas.</p>
+          </div>
+        </div>
+
+        <div id="welcome-auto-note" class="px-3 py-2 rounded-xl bg-app-accentSoft/70 border border-app-accent/25 text-[11px] text-app-accent font-semibold">
+          💡 Šis langas bus rodomas tol, kol nepradėsi kurti savo pirmosios programos.
+        </div>
+
+        <div class="pt-1 flex flex-col gap-2">
+          <button id="welcome-create-program-btn" type="button" class="w-full min-h-[46px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText text-xs font-extrabold shadow transition active:scale-[0.98] flex items-center justify-center gap-2">
+            <span>🚀 Sukurti pirmą programą</span>
+          </button>
+          <button id="welcome-dismiss-btn" type="button" class="w-full min-h-[42px] px-4 rounded-xl bg-app-input text-xs font-bold text-app-muted hover:text-app-text transition">
+            Uždaryti (tik apsižvalgyti)
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- ==================== MODALAS: PRATIMO REDAGAVIMAS / PRIDĖJIMAS ==================== -->
     <div id="exercise-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -937,7 +998,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.12</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.13</span>
         </div>
 
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
@@ -972,8 +1033,8 @@
     /**
      * DABARTINĖ PROGRAMĖLĖS VERSIJA
      */
-    const APP_VERSION = '1.12';
-    // RELEASE_NOTES: Pataisytas mygtukų veikimas ir paspaudimų blokavimas Telegram lange.
+    const APP_VERSION = '1.13';
+    // RELEASE_NOTES: Pridėtas pasisveikinimo ir instrukcijos langas naujiems vartotojams, rodomas tol, kol nepradedama kurti pirmoji programa.
 
     /**
      * 1. PIRMAUSIA PRIJUNGIAME APATINĘ NAVIGACIJĄ, KAD JI VEIKTŲ BET KOKIU ATVEJU
@@ -1034,11 +1095,11 @@
 
     function escapeHtml(str) {
       return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, ''');
     }
 
     /**
@@ -1273,7 +1334,7 @@
     function persistProgram() { SafeStore.set(KEYS.PROGRAM, program); }
 
     /**
-     * 5. PASVEIKINIMAS VIRŠUJE
+     * 5. PASVEIKINIMAS VIRŠUJE IR PIRMO KARTŲ GIDAS (WELCOME MODAL)
      */
     function getHeaderGreetingText() {
       const cg = (settings.customGreeting || '').trim();
@@ -1299,6 +1360,65 @@
     }
 
     updateHeaderGreetingUI();
+
+    /**
+     * Tikrina, ar vartotojas dar nepradėjo kurti savo programos.
+     * Grąžina true tik jei nėra istorijos, yra tik 1 tuščia pradinė diena be pratimų.
+     */
+    function hasUserStartedProgram() {
+      if (Array.isArray(history) && history.length > 0) return true;
+      if (!Array.isArray(program) || program.length === 0) return false;
+      if (program.length > 1) return true;
+      const firstDay = program[0];
+      if (!firstDay) return false;
+      if (Array.isArray(firstDay.exercises) && firstDay.exercises.length > 0) return true;
+      if (firstDay.title && firstDay.title !== DEFAULT_PROGRAM[0].title) return true;
+      return false;
+    }
+
+    function openWelcomeModal(manualOpen = false) {
+      const modal = document.getElementById('welcome-modal');
+      const titleEl = document.getElementById('welcome-greeting-title');
+      const noteEl = document.getElementById('welcome-auto-note');
+      if (!modal) return;
+
+      const name = getAthleteDisplayName();
+      if (titleEl) {
+        titleEl.textContent = name && name !== 'Sportininkas'
+          ? `Sveikas atvykęs, ${name}!`
+          : 'Sveikas atvykęs!';
+      }
+      if (noteEl) {
+        noteEl.classList.toggle('hidden', manualOpen || hasUserStartedProgram());
+      }
+      modal.classList.remove('hidden');
+    }
+
+    function closeWelcomeModal() {
+      const modal = document.getElementById('welcome-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    document.getElementById('close-welcome-x-btn').addEventListener('click', () => {
+      closeWelcomeModal();
+      haptic('light');
+    });
+
+    document.getElementById('welcome-dismiss-btn').addEventListener('click', () => {
+      closeWelcomeModal();
+      haptic('light');
+    });
+
+    document.getElementById('welcome-create-program-btn').addEventListener('click', () => {
+      closeWelcomeModal();
+      switchTab('editor');
+      haptic('medium');
+    });
+
+    document.getElementById('open-welcome-guide-btn').addEventListener('click', () => {
+      openWelcomeModal(true);
+      haptic('light');
+    });
 
     /**
      * 6. GARSO SIGNALAS, VIBRACIJA IR WAKE LOCK
@@ -3463,6 +3583,9 @@
     try {
       renderWorkoutView();
       syncTimersWithRealClock();
+      if (!hasUserStartedProgram()) {
+        openWelcomeModal(false);
+      }
     } catch (err) {
       console.error('Initial render error:', err);
     }
@@ -3488,6 +3611,9 @@
         syncWakeLock();
         renderWorkoutView();
         syncTimersWithRealClock();
+        if (hasUserStartedProgram()) {
+          closeWelcomeModal();
+        }
       } catch (err) {}
     });
   </script>
