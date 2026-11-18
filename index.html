@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V4.6 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.11 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS -->
@@ -648,7 +648,7 @@
           <div>
             <div class="flex items-center gap-2">
               <span class="text-xs font-extrabold">GymPro Tracker</span>
-              <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v4.6</span>
+              <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.11</span>
             </div>
             <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
           </div>
@@ -941,7 +941,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v4.7</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.12</span>
         </div>
 
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
@@ -974,9 +974,10 @@
     'use strict';
 
     /**
-     * DABARTINĖ PROGRAMĖLĖS VERSIJA (KEISKITE KARTU SU version.json)
+     * DABARTINĖ PROGRAMĖLĖS VERSIJA (GitHub Actions automatiškai įrašys į version.json)
      */
-    const APP_VERSION = '4.6';
+    const APP_VERSION = '1.11';
+    // RELEASE_NOTES: Nustatyta 1.11 versija su automatiniu atnaujinimų tikrinimu ir istorijos įrašų trynimu.
 
     /**
      * 1. PRADINĖ TUŠČIA PROGRAMA
