@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V4.3.1 — Telegram Mini App</title>
+  <title>GymPro Tracker V4.5 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS -->
@@ -210,8 +210,7 @@
       line-height: 1.3 !important;
     }
 
-
-    /* Telegram Fullscreen & Safe Area atstumai (kad nedengtų Close mygtukas ir laikrodis) */
+    /* Telegram Fullscreen & Safe Area atstumai */
     :root {
       --safe-top-total: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
       --safe-bottom-total: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + var(--tg-content-safe-area-inset-bottom, 0px));
@@ -260,7 +259,7 @@
               <span class="w-2.5 h-2.5 rounded-full bg-app-accent shrink-0"></span>
               <h1 id="header-user-title" class="text-base font-extrabold tracking-tight truncate">GymPro Tracker</h1>
             </div>
-            <p id="header-active-day-name" class="text-[11px] text-app-muted truncate mt-0.5">1 Diena: Visas kūnas</p>
+            <p id="header-active-day-name" class="text-[11px] text-app-muted truncate mt-0.5">1 Diena</p>
           </div>
 
           <!-- Sesijos valdymas (Pradėti / Atšaukti laiką) -->
@@ -371,7 +370,7 @@
               <p class="text-[11px] text-app-muted">Spustelėkite ant taško grafike detalesnei informacijai</p>
             </div>
             <div class="flex items-center gap-3 text-[10px] font-bold shrink-0">
-              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-app-accent inline-block"></span>Maks. kg</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-app-accent inline-block"></span>Maks.</span>
               <span class="flex items-center gap-1 text-emerald-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>1RM</span>
             </div>
           </div>
@@ -398,7 +397,7 @@
         <div class="flex items-center justify-between gap-2">
           <div>
             <h1 class="text-base font-extrabold">Redaguoti programą</h1>
-            <p class="text-xs text-app-muted mt-0.5">Pridėkite dienas, pratimus, serijas ir Drop-Set</p>
+            <p class="text-xs text-app-muted mt-0.5">Pridėkite dienas, pratimus, vienetus (kg/lb) ir serijas</p>
           </div>
           <button id="add-day-btn" type="button" class="min-h-[40px] px-3 rounded-xl bg-app-accent text-app-accentText font-extrabold text-xs flex items-center gap-1.5 active:scale-95 transition">
             <span>+ Nauja diena</span>
@@ -411,12 +410,17 @@
 
     <!-- ==================== 4 SKILTIS: ISTORIJA ==================== -->
     <div id="view-history" class="view-section hidden flex-1 flex flex-col">
-      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 py-3.5 flex items-center justify-between">
+      <header class="sticky top-0 z-30 bg-app-bg/95 backdrop-blur-md border-b border-app-border px-4 py-3.5 flex items-center justify-between gap-2">
         <div>
           <h1 class="text-base font-extrabold">Treniruočių Istorija</h1>
           <p class="text-xs text-app-muted mt-0.5">Atliktos treniruotės ir ataskaitų peržiūra</p>
         </div>
-        <span id="history-count-badge" class="px-2.5 py-1 rounded-lg bg-app-accentSoft text-app-accent text-xs font-extrabold">0</span>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="clear-all-history-btn" type="button" class="hidden min-h-[32px] px-2.5 rounded-lg bg-red-500/15 border border-red-500/35 text-red-400 text-[11px] font-extrabold active:scale-95 transition">
+            Išvalyti
+          </button>
+          <span id="history-count-badge" class="px-2.5 py-1 rounded-lg bg-app-accentSoft text-app-accent text-xs font-extrabold">0</span>
+        </div>
       </header>
 
       <main id="history-container" class="flex-1 px-3.5 pt-3.5 pb-24 space-y-3 overflow-y-auto"></main>
@@ -542,7 +546,7 @@
                 </div>
                 <p class="text-[11px] text-app-muted leading-relaxed">iPhone nereikia atskirų leidimų, tačiau Apple reikalauja patvirtinti per Safari:</p>
                 <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-app-muted leading-relaxed">
-                  <li>Spauskite mygtą viršuje (arba <strong class="text-app-text">⋯ → Add to Home Screen</strong>).</li>
+                  <li>Spauskite mygtuką viršuje (arba <strong class="text-app-text">⋯ → Add to Home Screen</strong>).</li>
                   <li>Atsidariusiame lange apačioje spauskite <strong class="text-app-text">Bendrinti (Share ikona ↑) → „Pridėti prie pradžios ekrano“ (Add to Home Screen)</strong>.</li>
                 </ol>
               </div>
@@ -642,14 +646,14 @@
           </div>
         </section>
 
-        <!-- Atstatyti bazinę programą -->
+        <!-- Išvalyti programą -->
         <section class="bg-app-card border border-red-500/30 rounded-2xl p-4 space-y-3">
           <div>
-            <h2 class="text-sm font-extrabold text-red-400">Atstatyti bazinę 3 dienų programą</h2>
-            <p class="text-xs text-app-muted mt-0.5">Grąžina pradinę 3 dienų programą su kardio apšilimu ir atvėsimu (istorija išliks).</p>
+            <h2 class="text-sm font-extrabold text-red-400">Išvalyti programą (pradėti nuo nulio)</h2>
+            <p class="text-xs text-app-muted mt-0.5">Pašalina visas sukurtas dienas bei pratimus ir palieka tuščią pradinį šabloną (istorija išliks).</p>
           </div>
           <button id="reset-default-program-btn" type="button" class="w-full min-h-[44px] px-4 rounded-xl bg-red-500/15 border border-red-500/40 text-red-400 text-xs font-extrabold hover:bg-red-500/25 active:scale-95 transition">
-            Atstatyti pradinę programą
+            Išvalyti visus pratimus
           </button>
         </section>
       </main>
@@ -708,7 +712,7 @@
 
           <div>
             <label class="block text-xs font-bold text-app-muted mb-1">Pratimo pavadinimas *</label>
-            <input id="ex-form-name" type="text" required placeholder="Pvz., Krūtinės spaudimas kampu" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
+            <input id="ex-form-name" type="text" required placeholder="Pvz., Vertikalaus bloko trauka" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
           </div>
 
           <label class="flex items-center justify-between p-3 rounded-xl bg-app-elevated border border-app-border cursor-pointer">
@@ -720,6 +724,20 @@
           </label>
 
           <div id="strength-fields-group" class="space-y-3.5">
+            <!-- Svorio vienetų pasirinkimas (kg / lb) -->
+            <div>
+              <label class="block text-xs font-bold text-app-muted mb-1">Svorio matavimo vienetai</label>
+              <input type="hidden" id="ex-form-unit" value="kg" />
+              <div class="grid grid-cols-2 gap-2">
+                <button type="button" data-unit-val="kg" class="unit-toggle-btn min-h-[42px] px-3 rounded-xl border text-xs font-extrabold transition active:scale-95">
+                  Kilogramai (kg)
+                </button>
+                <button type="button" data-unit-val="lb" class="unit-toggle-btn min-h-[42px] px-3 rounded-xl border text-xs font-extrabold transition active:scale-95">
+                  Svarai (lb)
+                </button>
+              </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-bold text-app-muted mb-1">Serijų skaičius (1–6)</label>
@@ -773,11 +791,11 @@
           <input type="hidden" id="day-form-idx" />
           <div>
             <label class="block text-xs font-bold text-app-muted mb-1">Dienos pavadinimas *</label>
-            <input id="day-form-title" type="text" required placeholder="Pvz., 4 Diena: Pečiai ir rankos" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
+            <input id="day-form-title" type="text" required placeholder="Pvz., 1 Diena: Visas kūnas" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-semibold focus:border-app-accent focus:outline-none" />
           </div>
           <div>
             <label class="block text-xs font-bold text-app-muted mb-1">Trumpas aprašymas</label>
-            <input id="day-form-subtitle" type="text" placeholder="Pvz., Pečių juosta, bicepsas, tricepsas" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm focus:border-app-accent focus:outline-none" />
+            <input id="day-form-subtitle" type="text" placeholder="Pvz., Krūtinė, nugara, pečiai" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm focus:border-app-accent focus:outline-none" />
           </div>
           <div class="pt-2 flex gap-2">
             <button type="button" id="cancel-day-modal" class="flex-1 min-h-[44px] rounded-xl bg-app-input text-xs font-bold">Atšaukti</button>
@@ -796,7 +814,7 @@
               <span class="px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 text-[10px] font-extrabold uppercase tracking-wider">Išsaugota į istoriją ✓</span>
               <span id="summary-pr-badge" class="hidden px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[10px] font-extrabold uppercase tracking-wider">🏆 Naujas PR!</span>
             </div>
-            <h3 id="summary-day-title" class="text-base font-black">1 Diena: Visas kūnas</h3>
+            <h3 id="summary-day-title" class="text-base font-black">1 Diena</h3>
             <p id="summary-date-line" class="text-xs text-app-muted mt-0.5"></p>
           </div>
           <button id="close-summary-modal" type="button" class="p-2 rounded-xl bg-app-input text-app-muted hover:text-app-text">✕</button>
@@ -805,15 +823,15 @@
         <div class="grid grid-cols-3 gap-2 my-3.5">
           <div class="bg-app-elevated border border-app-border rounded-xl p-2.5 text-center">
             <span class="text-[10px] text-app-muted font-bold uppercase block">Serijos</span>
-            <span id="summary-sets-count" class="text-xs font-extrabold mt-0.5 block tabular-nums">18</span>
+            <span id="summary-sets-count" class="text-xs font-extrabold mt-0.5 block tabular-nums">0</span>
           </div>
           <div class="bg-app-elevated border border-app-border rounded-xl p-2.5 text-center">
             <span class="text-[10px] text-app-muted font-bold uppercase block">Trukmė</span>
-            <span id="summary-duration" class="text-xs font-extrabold text-app-accent mt-0.5 block tabular-nums">65 min.</span>
+            <span id="summary-duration" class="text-xs font-extrabold text-app-accent mt-0.5 block tabular-nums">0 min.</span>
           </div>
           <div class="bg-app-elevated border border-app-border rounded-xl p-2.5 text-center">
             <span class="text-[10px] text-app-muted font-bold uppercase block">Tonažas</span>
-            <span id="summary-tonnage" class="text-xs font-extrabold text-emerald-400 mt-0.5 block tabular-nums">4 850 kg</span>
+            <span id="summary-tonnage" class="text-xs font-extrabold text-emerald-400 mt-0.5 block tabular-nums">0 kg</span>
           </div>
         </div>
 
@@ -927,53 +945,25 @@
     'use strict';
 
     /**
-     * 1. BAZINĖ 3 DIENŲ PROGRAMA (NUMATYTOJI)
+     * 1. PRADINĖ TUŠČIA PROGRAMA (VARTOTOJAI PATYS SUSIKURIA SAVO PRATIMUS)
      */
+    const LB_TO_KG = 0.45359237;
+
+    function toKg(weight, unit) {
+      const w = parseFloat(weight) || 0;
+      return unit === 'lb' ? w * LB_TO_KG : w;
+    }
+
+    function normalizeUnit(unit) {
+      return unit === 'lb' ? 'lb' : 'kg';
+    }
+
     const DEFAULT_PROGRAM = [
       {
         id: 'day_1',
-        title: '1 Diena: Visas kūnas (Full Body)',
-        subtitle: 'Jėgos akcentas ir baziniai judesiai',
-        exercises: [
-          { id: 'd1_e0', name: 'Elipsinis apšilimas', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Bendras viso kūno apšilimas prieš jėgos pratimus.' },
-          { id: 'd1_e1', name: 'Kojų spaudimas treniruoklyje', type: 'strength', setsCount: 3, restSec: 150, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Pėdos per vidurį. Prieš tai 2–3 lengvos apšilimo serijos.' },
-          { id: 'd1_e2', name: 'Krūtinės spaudimas sėdint treniruoklyje', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Tolygus, kontroliuojamas judesys be atmetimo apačioje.' },
-          { id: 'd1_e3', name: 'Vertikalaus bloko trauka', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Traukti sprogstamai, svorį grąžinti lėtai per 3 sek.' },
-          { id: 'd1_e4', name: 'Pečių spaudimas treniruoklyje', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Stabili nugaros padėtis, pilna judesio kontrolė.' },
-          { id: 'd1_e5', name: 'Bicepso lenkimas su lynu', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Pilnai ištiesti rankas apačioje, nesiūbuoti liemeniu.' },
-          { id: 'd1_e6', name: 'Tricepso tiesimas su lynu', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Alkūnes laikyti priglaustas prie šonų viso judesio metu.' },
-          { id: 'd1_e7', name: 'Liemens sukimai treniruoklyje', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 15 pak.', note: 'Sukti tolygiai, be staigių trūktelėjimų ar inercijos.' },
-          { id: 'd1_e8', name: 'Lengvas kardio atvėsimas', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Ramus ėjimas arba minimas treniruotės užbaigimui.' }
-        ]
-      },
-      {
-        id: 'day_2',
-        title: '2 Diena: Kojos ir Korpusas (Legs)',
-        subtitle: 'Šlaunys, sėdmenys, blauzdos ir liemuo',
-        exercises: [
-          { id: 'd2_e0', name: 'Elipsinis apšilimas', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Bendras viso kūno apšilimas prieš kojų treniruotę.' },
-          { id: 'd2_e1', name: 'Kojų spaudimas treniruoklyje', type: 'strength', setsCount: 3, restSec: 150, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Pėdos aukštai ir plačiai (akcentas sėdmenims ir galinei daliai).' },
-          { id: 'd2_e2', name: 'Kojų tiesimas sėdint', type: 'strength', setsCount: 3, restSec: 90, hasDropSet: true, target: '3 ser. po 10-12 pak. + DROP-SET (-30%)', note: 'Paskutinė serija – Drop-Set (-30 % svorio iki visiško deginimo).' },
-          { id: 'd2_e3', name: 'Kojų lenkimas gulint/sėdint', type: 'strength', setsCount: 3, restSec: 90, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Dubuo tvirtai prispaustas prie atramos, nekelti klubų.' },
-          { id: 'd2_e4', name: 'Blauzdų kėlimas treniruoklyje', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 12-15 pak.', note: 'Pilna judesio amplitudė, 1 sek. pauzė apatiniame ištempimo taške.' },
-          { id: 'd2_e5', name: 'Liemens sukimai treniruoklyje', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 15 pak.', note: 'Sukti tolygiai, be staigių trūktelėjimų ar inercijos.' },
-          { id: 'd2_e6', name: 'Lengvas kardio atvėsimas', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Ramus ėjimas arba minimas treniruotės užbaigimui.' }
-        ]
-      },
-      {
-        id: 'day_3',
-        title: '3 Diena: Viršutinė kūno dalis (Upper Body)',
-        subtitle: 'Krūtinė, nugara, pečiai ir rankos',
-        exercises: [
-          { id: 'd3_e0', name: 'Elipsinis apšilimas', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Bendras viso kūno apšilimas.' },
-          { id: 'd3_e1', name: 'Krūtinės spaudimas kampu', type: 'strength', setsCount: 3, restSec: 150, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: 'Suoliukas arba staklės. Prieš tai 2–3 lengvos apšilimo serijos.' },
-          { id: 'd3_e2', name: 'Horizontalaus bloko trauka', type: 'strength', setsCount: 3, restSec: 105, hasDropSet: false, target: '3 ser. po 8-10 pak.', note: '1–2 sek. pauzė suvedus mentis, kai rankena prie pilvo.' },
-          { id: 'd3_e3', name: 'Pečių mostai į šalis', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 12-15 pak.', note: 'Kelti iki pečių linijos, kontroliuoti leidimą žemyn.' },
-          { id: 'd3_e4', name: 'Plėšimas krūtinei treniruoklyje', type: 'strength', setsCount: 3, restSec: 90, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Ištempti krūtinę ir suspausti rankenas viduryje.' },
-          { id: 'd3_e5', name: 'Bicepso lenkimas ir Tricepso tiesimas', type: 'strength', setsCount: 3, restSec: 75, hasDropSet: false, target: '3 ser. po 10-12 pak.', note: 'Super-serija arba paeiliui po 10–12 pakartojimų.' },
-          { id: 'd3_e6', name: 'Liemens sukimai treniruoklyje', type: 'strength', setsCount: 3, restSec: 60, hasDropSet: false, target: '3 ser. po 15 pak.', note: 'Sukti tolygiai, kontroliuojant korpusą.' },
-          { id: 'd3_e7', name: 'Lengvas kardio atvėsimas', type: 'cardio', setsCount: 1, restSec: 0, hasDropSet: false, target: '10 min.', note: 'Ramus ėjimas arba minimas treniruotės užbaigimui.' }
-        ]
+        title: '1 Diena: Mano treniruotė',
+        subtitle: 'Pridėkite pratimus skiltyje „Programa“',
+        exercises: []
       }
     ];
 
@@ -986,11 +976,11 @@
      */
     function escapeHtml(str) {
       return String(str ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+        .replace(/&/g, '&')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, ''');
     }
 
     /**
@@ -1078,6 +1068,7 @@
           id: typeof ex.id === 'string' && ex.id ? ex.id : `ex_${Date.now()}_${dIdx}_${eIdx}`,
           name: String(ex.name || 'Pratimas'),
           type: ex.type === 'cardio' ? 'cardio' : 'strength',
+          unit: normalizeUnit(ex.unit),
           setsCount: Math.min(6, Math.max(1, parseInt(ex.setsCount, 10) || 3)),
           restSec: Math.max(0, parseInt(ex.restSec, 10) || 0),
           hasDropSet: Boolean(ex.hasDropSet),
@@ -1608,6 +1599,7 @@
         if (found) {
           return {
             date: sess.date,
+            unit: normalizeUnit(found.unit),
             sets: Array.isArray(found.sets) ? found.sets : [],
             minutes: found.minutes || '10'
           };
@@ -1623,14 +1615,15 @@
         return `Atlikta (${rec.minutes || 10} min.)`;
       }
       if (!rec.sets || rec.sets.length === 0) return null;
+      const unitLabel = normalizeUnit(rec.unit || ex.unit);
       const parts = [];
       let dropPart = '';
       rec.sets.forEach(s => {
         if (!s || (s.w === '' && s.r === '')) return;
         if (s.drop) {
-          dropPart = ` + Drop: ${s.w || '?'}kg×${s.r || '?'}`;
+          dropPart = ` + Drop: ${s.w || '?'}${unitLabel}×${s.r || '?'}`;
         } else {
-          parts.push(`${s.w || '?'}kg×${s.r || '?'}`);
+          parts.push(`${s.w || '?'}${unitLabel}×${s.r || '?'}`);
         }
       });
       if (parts.length === 0 && !dropPart) return null;
@@ -1640,21 +1633,22 @@
     function calculateCurrentDayTonnage() {
       const day = program[activeState.activeDayIdx];
       if (!day) return 0;
-      let vol = 0;
+      let volKg = 0;
       day.exercises.forEach(ex => {
         if (ex.type === 'strength') {
+          const unit = normalizeUnit(ex.unit);
           const d = ensureDraftForExercise(ex);
           d.sets.forEach(s => {
-            const w = parseFloat(s.w) || 0;
+            const wKg = toKg(s.w, unit);
             const r = parseInt(s.r, 10) || 0;
-            vol += w * r;
+            volKg += wKg * r;
           });
           if (ex.hasDropSet && d.dropSet) {
-            vol += (parseFloat(d.dropSet.w) || 0) * (parseInt(d.dropSet.r, 10) || 0);
+            volKg += toKg(d.dropSet.w, unit) * (parseInt(d.dropSet.r, 10) || 0);
           }
         }
       });
-      return Math.round(vol);
+      return Math.round(volKg);
     }
 
     /**
@@ -1929,16 +1923,27 @@
 
       if (!day.exercises || day.exercises.length === 0) {
         container.innerHTML = `
-          <div class="bg-app-card border border-app-border rounded-2xl p-6 text-center mt-4">
-            <p class="text-sm font-bold mb-1">Šioje dienoje dar nėra pratimų</p>
-            <p class="text-xs text-app-muted mb-3">Atsidarykite „Programa“ skiltį apačioje ir pridėkite pratimus.</p>
+          <div class="bg-app-card border border-app-border rounded-2xl p-6 text-center mt-4 space-y-3">
+            <div class="text-3xl">🏋️</div>
+            <div>
+              <p class="text-sm font-extrabold mb-1">Šioje dienoje dar nėra pratimų</p>
+              <p class="text-xs text-app-muted leading-relaxed">Susikurk savo treniruočių programą – pridėk dienas ir pratimus su pasirinktais svorio vienetais (kg arba lb).</p>
+            </div>
+            <button type="button" id="empty-goto-editor-btn" class="w-full min-h-[44px] px-4 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText text-xs font-extrabold transition active:scale-[0.98]">
+              + Sukurti programą dabar
+            </button>
           </div>
         `;
+        const gotoBtn = document.getElementById('empty-goto-editor-btn');
+        if (gotoBtn) {
+          gotoBtn.addEventListener('click', () => switchTab('editor'));
+        }
         updateWorkoutProgress();
         return;
       }
 
       day.exercises.forEach((ex, exIdx) => {
+        const exUnit = normalizeUnit(ex.unit);
         const exDraft = ensureDraftForExercise(ex);
         const lastText = formatLastRecordText(ex);
         const prevRec = findLastHistoryRecordForExercise(ex.name);
@@ -1973,6 +1978,7 @@
               <h2 class="text-[15px] font-extrabold leading-snug">${escapeHtml(ex.name)}</h2>
               <div class="flex flex-wrap items-center gap-1.5 mt-1">
                 ${ex.target ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-app-elevated text-app-muted border border-app-border">${escapeHtml(ex.target)}</span>` : ''}
+                ${ex.type === 'strength' && exUnit === 'lb' ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-sky-500/15 text-sky-400 border border-sky-500/30 uppercase">LB</span>` : ''}
                 ${ex.type === 'strength' && ex.restSec ? `<span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-app-elevated text-app-muted border border-app-border">Poilsis: ${ex.restSec}s</span>` : ''}
                 ${ex.hasDropSet ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-red-500/15 text-red-400 border border-red-500/30">🔥 DROP-SET (-30%)</span>` : ''}
               </div>
@@ -2020,7 +2026,7 @@
             <div class="ex-sets-wrap mt-3 space-y-2">
               <div class="grid grid-cols-[64px_1fr_1fr_44px] gap-2 px-1 text-[10px] font-extrabold uppercase tracking-wider text-app-muted">
                 <span>Serija</span>
-                <span class="text-center">Svoris (kg)</span>
+                <span class="text-center">Svoris (${exUnit})</span>
                 <span class="text-center">Kartai</span>
                 <span class="text-center">✓</span>
               </div>
@@ -2036,7 +2042,7 @@
                   <span class="text-xs font-extrabold ${sObj.done ? 'text-emerald-400' : ''}">Ser. ${sIdx + 1}</span>
                   ${isLastDrop ? '<span class="block text-[9px] font-extrabold text-red-400">+ DROP</span>' : ''}
                 </div>
-                <input type="number" inputmode="decimal" step="0.5" placeholder="kg" value="${escapeHtml(sObj.w)}"
+                <input type="number" inputmode="decimal" step="0.5" placeholder="${exUnit}" value="${escapeHtml(sObj.w)}"
                   data-ex-id="${escapeHtml(ex.id)}" data-s-idx="${sIdx}" data-field="w"
                   class="set-val-input w-full h-11 rounded-lg bg-app-input border border-app-border focus:border-app-accent focus:outline-none text-center text-sm font-extrabold" />
                 <input type="number" inputmode="numeric" placeholder="pak." value="${escapeHtml(sObj.r)}"
@@ -2053,7 +2059,7 @@
 
             if (isLastDrop) {
               const dropObj = exDraft.dropSet || { w: '', r: '' };
-              const suggestedDrop = sObj.w ? String(Math.round(parseFloat(sObj.w) * 0.7 * 2) / 2) : 'kg';
+              const suggestedDrop = sObj.w ? String(Math.round(parseFloat(sObj.w) * 0.7 * 2) / 2) : exUnit;
               html += `
                 <div class="ex-set-row grid grid-cols-[64px_1fr_1fr_44px] gap-2 items-center p-1.5 rounded-xl bg-red-500/10 border border-red-500/35">
                   <div class="pl-1">
@@ -2094,19 +2100,23 @@
       return Math.round(w * (1 + r / 30) * 10) / 10;
     }
 
-    function getPreviousMaxWeight(exerciseName) {
-      let maxW = 0;
+    function getPreviousMaxWeight(exerciseName, targetUnit = 'kg') {
+      let maxConverted = 0;
       history.forEach(sess => {
         (sess.exercises || []).forEach(ex => {
           if (ex.name === exerciseName && Array.isArray(ex.sets)) {
+            const exUnit = normalizeUnit(ex.unit);
             ex.sets.forEach(s => {
-              const w = parseFloat(s.w) || 0;
-              if (w > maxW) maxW = w;
+              const rawW = parseFloat(s.w) || 0;
+              if (rawW <= 0) return;
+              const wInKg = toKg(rawW, exUnit);
+              const wInTarget = targetUnit === 'lb' ? (wInKg / LB_TO_KG) : wInKg;
+              if (wInTarget > maxConverted) maxConverted = wInTarget;
             });
           }
         });
       });
-      return maxW;
+      return Math.round(maxConverted * 10) / 10;
     }
 
     /**
@@ -2123,7 +2133,7 @@
       const startTimeStr = formatClock(startTs);
       const endTimeStr = formatClock(endTs);
 
-      let totalVolume = 0;
+      let totalVolumeKg = 0;
       let totalSetsCompleted = 0;
       const compactExercises = [];
       const newPRsAchieved = [];
@@ -2142,6 +2152,7 @@
             });
           }
         } else {
+          const exUnit = normalizeUnit(ex.unit);
           const validSets = [];
           let exMaxW = 0;
 
@@ -2153,7 +2164,7 @@
               const wNum = parseFloat(wVal) || 0;
               const rNum = parseInt(rVal, 10) || 0;
               if (wNum > exMaxW) exMaxW = wNum;
-              totalVolume += wNum * rNum;
+              totalVolumeKg += toKg(wNum, exUnit) * rNum;
               totalSetsCompleted += 1;
             }
           });
@@ -2162,19 +2173,20 @@
             const dw = String(d.dropSet.w || '0');
             const dr = String(d.dropSet.r || '0');
             validSets.push({ w: dw, r: dr, drop: true });
-            totalVolume += (parseFloat(dw) || 0) * (parseInt(dr, 10) || 0);
+            totalVolumeKg += toKg(dw, exUnit) * (parseInt(dr, 10) || 0);
             totalSetsCompleted += 1;
           }
 
           if (validSets.length > 0) {
-            const prevBestW = getPreviousMaxWeight(ex.name);
+            const prevBestW = getPreviousMaxWeight(ex.name, exUnit);
             if (exMaxW > 0 && prevBestW > 0 && exMaxW > prevBestW) {
-              newPRsAchieved.push(`${ex.name}: ${exMaxW} kg (buvo ${prevBestW} kg)`);
+              newPRsAchieved.push(`${ex.name}: ${exMaxW} ${exUnit} (buvo ${prevBestW} ${exUnit})`);
             }
 
             compactExercises.push({
               name: ex.name,
               type: 'strength',
+              unit: exUnit,
               sets: validSets
             });
           }
@@ -2194,7 +2206,7 @@
         dayId: day.id,
         dayTitle: day.title,
         durationSec,
-        totalVolume: Math.round(totalVolume),
+        totalVolume: Math.round(totalVolumeKg),
         totalSets: totalSetsCompleted,
         prs: newPRsAchieved,
         exercises: compactExercises
@@ -2223,13 +2235,14 @@
         return `${ex.minutes || '10'} min.`;
       }
       if (!Array.isArray(ex.sets) || ex.sets.length === 0) return '—';
+      const u = normalizeUnit(ex.unit);
       const normal = [];
       let drop = '';
       ex.sets.forEach(s => {
         if (s.drop) {
-          drop = ` + Drop: ${s.w}kg×${s.r}`;
+          drop = ` + Drop: ${s.w}${u}×${s.r}`;
         } else {
-          normal.push(`${s.w}kg×${s.r}`);
+          normal.push(`${s.w}${u}×${s.r}`);
         }
       });
       return normal.join(', ') + drop;
@@ -2255,13 +2268,40 @@
       return Array.from(names);
     }
 
+    function getCurrentUnitForExerciseName(exName) {
+      for (const d of program) {
+        const found = d.exercises.find(ex => ex.name === exName && ex.type === 'strength');
+        if (found) return normalizeUnit(found.unit);
+      }
+      for (const sess of history) {
+        const found = (sess.exercises || []).find(ex => ex.name === exName && ex.type !== 'cardio');
+        if (found) return normalizeUnit(found.unit);
+      }
+      return 'kg';
+    }
+
     function renderProgressView() {
       const select = document.getElementById('progress-exercise-select');
       const allNames = getAllStrengthExercises();
       const prevSelected = select.value;
 
+      const chartBox = document.getElementById('progress-chart-box');
+      const detailBox = document.getElementById('progress-point-detail');
+      const logsBox = document.getElementById('progress-exercise-logs');
+      detailBox.classList.add('hidden');
+
       if (allNames.length === 0) {
         select.innerHTML = `<option value="">Nėra jėgos pratimų</option>`;
+        document.getElementById('pr-max-weight').textContent = '—';
+        document.getElementById('pr-est-1rm').textContent = '—';
+        document.getElementById('pr-last-tonnage').textContent = '—';
+        chartBox.innerHTML = `
+          <div class="py-10 px-4 text-center">
+            <p class="text-xs font-bold">Dar nėra sukurtų jėgos pratimų</p>
+            <p class="text-[11px] text-app-muted mt-1">Pridėkite pratimų „Programa“ skiltyje ir atlikite pirmą treniruotę.</p>
+          </div>
+        `;
+        logsBox.innerHTML = `<p class="text-app-muted text-[11px]">Įrašų dar nėra.</p>`;
         return;
       }
 
@@ -2271,22 +2311,29 @@
       }
 
       const selectedName = select.value;
+      const displayUnit = getCurrentUnitForExerciseName(selectedName);
       const dataPoints = [];
 
       [...history].reverse().forEach(sess => {
         (sess.exercises || []).forEach(ex => {
           if (ex.name === selectedName && Array.isArray(ex.sets) && ex.sets.length > 0) {
+            const recUnit = normalizeUnit(ex.unit);
             let maxW = 0;
             let best1RM = 0;
-            let exTonnage = 0;
+            let exTonnageKg = 0;
 
             ex.sets.forEach(s => {
-              const w = parseFloat(s.w) || 0;
+              const rawW = parseFloat(s.w) || 0;
               const r = parseInt(s.r, 10) || 0;
-              if (w > maxW) maxW = w;
-              const est = calcEpley1RM(w, r);
+              const wKg = toKg(rawW, recUnit);
+              const wDisplay = displayUnit === 'lb'
+                ? Math.round((wKg / LB_TO_KG) * 10) / 10
+                : Math.round(wKg * 10) / 10;
+
+              if (wDisplay > maxW) maxW = wDisplay;
+              const est = calcEpley1RM(wDisplay, r);
               if (est > best1RM) best1RM = est;
-              exTonnage += w * r;
+              exTonnageKg += wKg * r;
             });
 
             if (maxW > 0) {
@@ -2294,18 +2341,13 @@
                 date: sess.date,
                 maxW,
                 est1RM: best1RM,
-                tonnage: Math.round(exTonnage),
+                tonnage: Math.round(exTonnageKg),
                 summary: formatExerciseSummaryLine(ex)
               });
             }
           }
         });
       });
-
-      const chartBox = document.getElementById('progress-chart-box');
-      const detailBox = document.getElementById('progress-point-detail');
-      const logsBox = document.getElementById('progress-exercise-logs');
-      detailBox.classList.add('hidden');
 
       if (dataPoints.length === 0) {
         document.getElementById('pr-max-weight').textContent = '—';
@@ -2325,8 +2367,8 @@
       const overallMax1RM = Math.max(...dataPoints.map(p => p.est1RM));
       const lastPt = dataPoints[dataPoints.length - 1];
 
-      document.getElementById('pr-max-weight').textContent = `${overallMaxW} kg`;
-      document.getElementById('pr-est-1rm').textContent = `${overallMax1RM} kg`;
+      document.getElementById('pr-max-weight').textContent = `${overallMaxW} ${displayUnit}`;
+      document.getElementById('pr-est-1rm').textContent = `${overallMax1RM} ${displayUnit}`;
       document.getElementById('pr-last-tonnage').textContent = `${lastPt.tonnage} kg`;
 
       const svgW = 380;
@@ -2389,7 +2431,7 @@
           const pt = dataPoints[Number(dot.dataset.ptIdx)];
           detailBox.classList.remove('hidden');
           document.getElementById('point-detail-date').textContent = `Data: ${pt.date}`;
-          document.getElementById('point-detail-vals').textContent = `Maks: ${pt.maxW} kg • 1RM: ${pt.est1RM} kg`;
+          document.getElementById('point-detail-vals').textContent = `Maks: ${pt.maxW} ${displayUnit} • 1RM: ${pt.est1RM} ${displayUnit}`;
           haptic('light');
         });
       });
@@ -2401,8 +2443,8 @@
             <span class="block text-[11px] text-app-muted mt-0.5">${escapeHtml(pt.summary)}</span>
           </div>
           <div class="text-right shrink-0">
-            <span class="font-black block">${pt.maxW} kg</span>
-            <span class="text-[10px] text-emerald-400 font-bold">1RM: ${pt.est1RM} kg</span>
+            <span class="font-black block">${pt.maxW} ${displayUnit}</span>
+            <span class="text-[10px] text-emerald-400 font-bold">1RM: ${pt.est1RM} ${displayUnit}</span>
           </div>
         </div>
       `).join('');
@@ -2505,7 +2547,7 @@
 
       ctx.fillStyle = textMuted;
       ctx.font = '600 18px Inter, sans-serif';
-      ctx.fillText('GymPro Tracker V4.3.1 • Telegram Mini App', 48, height - 26);
+      ctx.fillText('GymPro Tracker V4.5 • Telegram Mini App', 48, height - 26);
 
       currentPngDataUrl = canvas.toDataURL('image/png');
       currentPngFilename = `Treniruote_${record.date}.png`;
@@ -2557,15 +2599,16 @@
     function buildCsvReport(record) {
       const durationMin = Math.max(1, Math.round((record.durationSec || 60) / 60));
       const rows = [
-        ['Data', 'Diena', 'Trukmė (min)', 'Pratimas', 'Serija', 'Svoris (kg)', 'Pakartojimai', 'Tonažas (kg)']
+        ['Data', 'Diena', 'Trukmė (min)', 'Pratimas', 'Serija', 'Svoris', 'Vienetas', 'Pakartojimai', 'Tonažas (kg)']
       ];
       record.exercises.forEach(ex => {
         if (ex.type === 'cardio') {
-          rows.push([record.date, record.dayTitle, durationMin, ex.name, 'Kardio', '-', `${ex.minutes || 10} min`, 0]);
+          rows.push([record.date, record.dayTitle, durationMin, ex.name, 'Kardio', '-', '-', `${ex.minutes || 10} min`, 0]);
         } else {
+          const u = normalizeUnit(ex.unit);
           (ex.sets || []).forEach((s, idx) => {
-            const vol = (parseFloat(s.w) || 0) * (parseInt(s.r, 10) || 0);
-            rows.push([record.date, record.dayTitle, durationMin, ex.name, s.drop ? 'Drop-Set' : idx + 1, s.w || 0, s.r || 0, vol]);
+            const volKg = Math.round(toKg(s.w, u) * (parseInt(s.r, 10) || 0) * 10) / 10;
+            rows.push([record.date, record.dayTitle, durationMin, ex.name, s.drop ? 'Drop-Set' : idx + 1, s.w || 0, u, s.r || 0, volKg]);
           });
         }
       });
@@ -2681,13 +2724,25 @@
           <div class="space-y-2">
         `;
 
+        if (day.exercises.length === 0) {
+          html += `
+            <div class="py-4 px-3 rounded-xl bg-app-elevated/50 border border-dashed border-app-border text-center text-xs text-app-muted">
+              Šioje dienoje dar nėra pratimų. Spauskite žemiau esantį mygtuką, kad pridėtumėte.
+            </div>
+          `;
+        }
+
         day.exercises.forEach((ex, eIdx) => {
+          const exUnit = normalizeUnit(ex.unit);
           html += `
             <div class="p-2.5 rounded-xl bg-app-elevated border border-app-border/70 flex items-center justify-between gap-2">
               <div class="min-w-0 flex-1">
-                <div class="text-xs font-extrabold truncate">${eIdx + 1}. ${escapeHtml(ex.name)}</div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-extrabold truncate">${eIdx + 1}. ${escapeHtml(ex.name)}</span>
+                  ${ex.type === 'strength' && exUnit === 'lb' ? `<span class="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 text-[9px] font-extrabold shrink-0">LB</span>` : ''}
+                </div>
                 <div class="text-[11px] text-app-muted mt-0.5">
-                  ${ex.type === 'cardio' ? `🏃 Kardio • ${escapeHtml(ex.target || '10 min.')}` : `${ex.setsCount} ser. • Poilsis ${ex.restSec}s${ex.hasDropSet ? ' • 🔥 Drop-Set' : ''}`}
+                  ${ex.type === 'cardio' ? `🏃 Kardio • ${escapeHtml(ex.target || '10 min.')}` : `${ex.setsCount} ser. (${exUnit}) • Poilsis ${ex.restSec}s${ex.hasDropSet ? ' • 🔥 Drop-Set' : ''}`}
                 </div>
               </div>
               <div class="flex items-center gap-1 shrink-0">
@@ -2715,6 +2770,27 @@
     const exModal = document.getElementById('exercise-modal');
     const isCardioCheck = document.getElementById('ex-form-is-cardio');
     const strengthGroup = document.getElementById('strength-fields-group');
+    const unitHiddenInput = document.getElementById('ex-form-unit');
+
+    function setFormUnit(unitVal) {
+      const valid = normalizeUnit(unitVal);
+      unitHiddenInput.value = valid;
+      document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
+        const active = btn.dataset.unitVal === valid;
+        btn.className = `unit-toggle-btn min-h-[42px] px-3 rounded-xl border text-xs font-extrabold transition active:scale-95 ${
+          active
+            ? 'bg-app-accentSoft border-app-accent text-app-accent ring-1 ring-app-accent'
+            : 'bg-app-input border-app-border text-app-muted hover:text-app-text'
+        }`;
+      });
+    }
+
+    document.querySelectorAll('.unit-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setFormUnit(btn.dataset.unitVal);
+        haptic('light');
+      });
+    });
 
     isCardioCheck.addEventListener('change', () => {
       strengthGroup.classList.toggle('hidden', isCardioCheck.checked);
@@ -2729,6 +2805,7 @@
         document.getElementById('ex-modal-title').textContent = 'Redaguoti pratimą';
         document.getElementById('ex-form-name').value = ex.name;
         isCardioCheck.checked = ex.type === 'cardio';
+        setFormUnit(ex.unit || 'kg');
         document.getElementById('ex-form-sets').value = String(ex.setsCount || 3);
         document.getElementById('ex-form-rest').value = String(ex.restSec ?? 90);
         document.getElementById('ex-form-dropset').checked = Boolean(ex.hasDropSet);
@@ -2738,6 +2815,7 @@
         document.getElementById('ex-modal-title').textContent = 'Naujas pratimas';
         document.getElementById('ex-form-name').value = '';
         isCardioCheck.checked = false;
+        setFormUnit('kg');
         document.getElementById('ex-form-sets').value = '3';
         document.getElementById('ex-form-rest').value = '90';
         document.getElementById('ex-form-dropset').checked = false;
@@ -2761,6 +2839,7 @@
         id: eIdx >= 0 ? program[dIdx].exercises[eIdx].id : `ex_${Date.now()}`,
         name: document.getElementById('ex-form-name').value.trim(),
         type: isCardio ? 'cardio' : 'strength',
+        unit: isCardio ? 'kg' : normalizeUnit(unitHiddenInput.value),
         setsCount: isCardio ? 1 : Number(document.getElementById('ex-form-sets').value),
         restSec: isCardio ? 0 : Math.max(0, Number(document.getElementById('ex-form-rest').value) || 0),
         hasDropSet: isCardio ? false : document.getElementById('ex-form-dropset').checked,
@@ -2873,13 +2952,18 @@
     });
 
     /**
-     * 18. ISTORIJA IR EKSPORTAS (TAB 4)
+     * 18. ISTORIJA, TRYNIMAS SU PATVIRTINIMO LANGU IR EKSPORTAS (TAB 4)
      */
     function renderHistoryView() {
       const container = document.getElementById('history-container');
-      document.getElementById('history-count-badge').textContent = String(history.length);
+      const countBadge = document.getElementById('history-count-badge');
+      const clearAllBtn = document.getElementById('clear-all-history-btn');
 
-      if (!Array.isArray(history) || history.length === 0) {
+      const hasItems = Array.isArray(history) && history.length > 0;
+      countBadge.textContent = hasItems ? String(history.length) : '0';
+      clearAllBtn.classList.toggle('hidden', !hasItems);
+
+      if (!hasItems) {
         container.innerHTML = `
           <div class="bg-app-card border border-app-border rounded-2xl p-8 text-center mt-4">
             <div class="text-3xl mb-2">📊</div>
@@ -2905,17 +2989,22 @@
 
         card.innerHTML = `
           <div class="flex items-start justify-between gap-2">
-            <div>
+            <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[11px] font-extrabold text-app-accent">${escapeHtml(sess.date)}</span>
                 <span class="text-[11px] text-app-muted">• ${durationMin} min. (${sess.totalSets || sess.exercises.length} ser.)</span>
                 ${sess.prs && sess.prs.length > 0 ? `<span class="px-1.5 py-0.5 rounded bg-app-accentSoft text-app-accent text-[9px] font-extrabold">🏆 PR</span>` : ''}
               </div>
-              <h3 class="text-sm font-black mt-0.5">${escapeHtml(sess.dayTitle)}</h3>
+              <h3 class="text-sm font-black mt-0.5 truncate">${escapeHtml(sess.dayTitle)}</h3>
             </div>
-            <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[11px] font-extrabold shrink-0">
-              ${sess.totalVolume} kg
-            </span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[11px] font-extrabold">
+                ${sess.totalVolume} kg
+              </span>
+              <button type="button" data-hist-del="${idx}" title="Ištrinti šią treniruotę" class="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center active:scale-90 transition">
+                🗑
+              </button>
+            </div>
           </div>
 
           <div class="bg-app-elevated/60 rounded-xl p-2.5">${exListHtml}</div>
@@ -2930,9 +3019,47 @@
       });
     }
 
+    document.getElementById('clear-all-history-btn').addEventListener('click', () => {
+      if (!Array.isArray(history) || history.length === 0) return;
+      haptic('medium');
+      showConfirm(
+        'Išvalyti visą istoriją?',
+        `Ar tikrai norite negrįžtamai ištrinti visus (${history.length}) treniruočių įrašus ir progreso duomenis?`,
+        () => {
+          history = [];
+          persistHistory();
+          renderHistoryView();
+          renderProgressView();
+          renderWorkoutView();
+          haptic('success');
+          showToast('Visa istorija išvalyta');
+        }
+      );
+    });
+
     document.getElementById('history-container').addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
+      if (btn.dataset.histDel !== undefined) {
+        const idx = Number(btn.dataset.histDel);
+        const sess = history[idx];
+        if (!sess) return;
+        haptic('medium');
+        showConfirm(
+          'Ištrinti treniruotę?',
+          `Ar tikrai norite pašalinti „${sess.dayTitle}“ (${sess.date}) iš istorijos?`,
+          () => {
+            history.splice(idx, 1);
+            persistHistory();
+            renderHistoryView();
+            renderProgressView();
+            renderWorkoutView();
+            haptic('success');
+            showToast('Treniruotė ištrinta iš istorijos');
+          }
+        );
+        return;
+      }
       if (btn.dataset.histPng !== undefined) openPngPreviewModal(history[Number(btn.dataset.histPng)]);
       if (btn.dataset.histCsv !== undefined) openTextExportModal('CSV (Excel) duomenys', buildCsvReport(history[Number(btn.dataset.histCsv)]));
       if (btn.dataset.histTxt !== undefined) openTextExportModal('TXT treniruotės ataskaita', buildTxtReport(history[Number(btn.dataset.histTxt)]));
@@ -3081,7 +3208,7 @@
 
     document.getElementById('export-backup-json-btn').addEventListener('click', async () => {
       const backupPayload = {
-        version: '4.3.1',
+        version: '4.5',
         exportedAt: new Date().toISOString(),
         program,
         history,
@@ -3143,15 +3270,15 @@
 
     document.getElementById('reset-default-program-btn').addEventListener('click', () => {
       showConfirm(
-        'Atstatyti pradinę programą?',
-        'Visi redaguoti pratimai bus pakeisti bazine 3 dienų programa (istorija išliks).',
+        'Išvalyti visą programą?',
+        'Visos sukurtos dienos bei pratimai bus ištrinti ir paliktas tuščias pradinis šablonas (istorija išliks).',
         () => {
           program = cloneDefaultProgram();
           activeState.activeDayIdx = 0;
           persistActiveState();
           saveProgramChanges();
           haptic('success');
-          showToast('Bazinė 3 dienų programa atstatyta!');
+          showToast('Programa išvalyta!');
         }
       );
     });
