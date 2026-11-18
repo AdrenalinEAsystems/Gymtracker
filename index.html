@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V4.5 — Telegram Mini App</title>
+  <title>GymPro Tracker V4.6 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS -->
@@ -162,12 +162,12 @@
       border-radius: 9999px;
     }
 
-    /* UI MASTELIS (Šrifto ir laukelių dydis) */
-    html[data-scale="sm"] { font-size: 14.4px; } /* 90% */
-    html[data-scale="md"] { font-size: 16px; }   /* 100% */
-    html[data-scale="lg"] { font-size: 17.9px; } /* 112% */
+    /* UI MASTELIS */
+    html[data-scale="sm"] { font-size: 14.4px; }
+    html[data-scale="md"] { font-size: 16px; }
+    html[data-scale="lg"] { font-size: 17.9px; }
 
-    /* IŠDĖSTYMO TANKIS: KOMPAKTIŠKAS (COMPACT) */
+    /* IŠDĖSTYMO TANKIS: KOMPAKTIŠKAS */
     html[data-density="compact"] #workout-container {
       padding-top: 0.5rem;
       padding-left: 0.625rem;
@@ -237,7 +237,6 @@
       top: calc(1rem + var(--safe-top-total)) !important;
     }
 
-    /* Plaukiojantis tampomas poilsio laikmatis */
     #rest-timer-widget {
       touch-action: none;
       user-select: none;
@@ -262,14 +261,11 @@
             <p id="header-active-day-name" class="text-[11px] text-app-muted truncate mt-0.5">1 Diena</p>
           </div>
 
-          <!-- Sesijos valdymas (Pradėti / Atšaukti laiką) -->
           <div id="session-header-control" class="shrink-0"></div>
         </div>
 
-        <!-- Dienų perjungiklis -->
         <div id="day-tabs-container" class="flex gap-1.5 overflow-x-auto pb-0.5 no-scrollbar"></div>
 
-        <!-- Progreso juosta -->
         <div class="mt-2.5 flex items-center gap-2.5">
           <div class="flex-1 h-1.5 bg-app-input rounded-full overflow-hidden">
             <div id="progress-bar" class="h-full bg-app-accent transition-all duration-300 rounded-full" style="width: 0%"></div>
@@ -278,7 +274,6 @@
         </div>
       </header>
 
-      <!-- Aktyvios treniruotės sesijos juosta (Laikas + Tonažas) -->
       <div id="active-session-banner" class="hidden mx-3.5 mt-3 px-3.5 py-2.5 rounded-2xl bg-app-accentSoft border border-app-accent/35 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
@@ -290,10 +285,8 @@
         <div id="session-elapsed-label" class="text-lg font-black tabular-nums text-app-text">00:00:00</div>
       </div>
 
-      <!-- Pratimų kortelių sąrašas -->
       <main id="workout-container" class="flex-1 px-3.5 pt-3 pb-44 space-y-3 overflow-y-auto"></main>
 
-      <!-- Apatinis treniruotės užbaigimo skydelis -->
       <div class="fixed bottom-[64px] left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-app-bg/95 backdrop-blur-md border-t border-app-border px-3.5 py-2.5 z-30">
         <div class="flex gap-2">
           <button id="reset-checks-btn" type="button" title="Nuimti pažymėtas varneles" class="min-h-[46px] px-3.5 rounded-xl bg-app-card border border-app-border text-app-muted hover:text-app-text active:scale-95 transition flex items-center justify-center">
@@ -313,18 +306,15 @@
 
     <!-- ==================== PLAUKIOJANTIS TAMPOMAS POILSIO LAIKMATIS ==================== -->
     <div id="rest-timer-widget" class="hidden fixed z-40 shadow-2xl rounded-2xl bg-app-elevated/95 backdrop-blur-md border-2 border-app-accent p-2.5 flex items-center gap-2" style="left: 16px; bottom: 132px;">
-      <!-- Tampymo rankenėlė -->
       <div id="timer-drag-handle" title="Tempkite bet kur ekrane" class="cursor-grab active:cursor-grabbing px-1.5 py-2 rounded-xl bg-app-input/80 text-app-muted hover:text-app-text flex items-center justify-center text-sm font-black leading-none">
         ⠿
       </div>
 
-      <!-- Laiko rodmuo -->
       <div class="pr-1">
         <div class="text-[9px] uppercase tracking-wider font-extrabold text-app-accent leading-none">Poilsis</div>
         <div id="timer-display" class="text-lg font-black tabular-nums leading-tight mt-0.5">01:30</div>
       </div>
 
-      <!-- Greiti valdymo mygtukai -->
       <div class="flex items-center gap-1">
         <button type="button" id="timer-minus" class="min-h-[36px] px-2 rounded-xl bg-app-input hover:opacity-80 active:scale-95 text-[11px] font-extrabold transition">-15s</button>
         <button type="button" id="timer-plus" class="min-h-[36px] px-2 rounded-xl bg-app-input hover:opacity-80 active:scale-95 text-[11px] font-extrabold transition">+15s</button>
@@ -340,13 +330,11 @@
       </header>
 
       <main class="flex-1 px-3.5 pt-3.5 pb-24 space-y-4 overflow-y-auto">
-        <!-- Pratimo pasirinkimas -->
         <div class="bg-app-card border border-app-border rounded-2xl p-3.5">
           <label for="progress-exercise-select" class="block text-[11px] font-extrabold uppercase tracking-wider text-app-muted mb-1.5">Pasirinkite pratimą analizei</label>
           <select id="progress-exercise-select" class="w-full min-h-[44px] px-3.5 rounded-xl bg-app-input border border-app-border text-sm font-bold focus:border-app-accent focus:outline-none"></select>
         </div>
 
-        <!-- 3 PR Statistikos kortelės -->
         <div class="grid grid-cols-3 gap-2">
           <div class="bg-app-card border border-app-border rounded-2xl p-3 text-center">
             <span class="text-[10px] font-extrabold uppercase text-app-muted block">Maks. svoris (PR)</span>
@@ -362,7 +350,6 @@
           </div>
         </div>
 
-        <!-- Interaktyvus SVG kreivės grafikas -->
         <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3">
           <div class="flex items-center justify-between gap-2">
             <div>
@@ -383,7 +370,6 @@
           </div>
         </section>
 
-        <!-- Paskutinių treniruočių išklotinė šiam pratimui -->
         <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-2.5">
           <h3 class="text-xs font-extrabold uppercase tracking-wider text-app-muted">Pratimo rezultatų istorija</h3>
           <div id="progress-exercise-logs" class="space-y-2 text-xs"></div>
@@ -506,7 +492,7 @@
           </div>
         </section>
 
-        <!-- Pridėti į pagrindinį telefono ekraną (1-Click + Android / iOS Gidas) -->
+        <!-- Pridėti į pagrindinį telefono ekraną -->
         <section class="bg-app-card border border-app-accent/40 rounded-2xl p-4 space-y-3">
           <div class="flex items-start justify-between gap-2">
             <div>
@@ -656,6 +642,20 @@
             Išvalyti visus pratimus
           </button>
         </section>
+
+        <!-- Programėlės versija ir atnaujinimų tikrinimas -->
+        <section class="bg-app-card border border-app-border rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-extrabold">GymPro Tracker</span>
+              <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v4.6</span>
+            </div>
+            <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
+          </div>
+          <button id="manual-check-update-btn" type="button" class="min-h-[38px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-extrabold hover:opacity-90 active:scale-95 transition shrink-0">
+            🔄 Tikrinti
+          </button>
+        </section>
       </main>
     </div>
 
@@ -724,7 +724,6 @@
           </label>
 
           <div id="strength-fields-group" class="space-y-3.5">
-            <!-- Svorio vienetų pasirinkimas (kg / lb) -->
             <div>
               <label class="block text-xs font-bold text-app-muted mb-1">Svorio matavimo vienetai</label>
               <input type="hidden" id="ex-form-unit" value="kg" />
@@ -805,7 +804,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODALAS: TRENIRUOTĖS SUVESTINĖ IR TELEGRAM WEBVIEW EKSPORTAS ==================== -->
+    <!-- ==================== MODALAS: TRENIRUOTĖS SUVESTINĖ ==================== -->
     <div id="summary-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div class="bg-app-card border border-app-border rounded-t-3xl sm:rounded-2xl w-full max-w-[460px] p-5 shadow-2xl max-h-[92vh] overflow-y-auto">
         <div class="flex items-start justify-between gap-2 pb-3 border-b border-app-border">
@@ -859,7 +858,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODALAS: PNG KORTELĖS PERŽIŪRA IR IŠSAUGOJIMAS TELEGRAME ==================== -->
+    <!-- ==================== MODALAS: PNG KORTELĖS PERŽIŪRA ==================== -->
     <div id="png-preview-modal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
       <div class="w-full max-w-[460px] bg-app-card border border-app-border rounded-2xl p-4 shadow-2xl flex flex-col max-h-[92vh]">
         <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-app-border">
@@ -885,7 +884,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODALAS: CSV / TXT ATASKAITOS KOPIJAVIMAS IR DALINIMASIS ==================== -->
+    <!-- ==================== MODALAS: CSV / TXT ATASKAITA ==================== -->
     <div id="text-export-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="w-full max-w-[440px] bg-app-card border border-app-border rounded-2xl p-4 shadow-2xl space-y-3">
         <div class="flex items-center justify-between">
@@ -931,6 +930,36 @@
       </div>
     </div>
 
+    <!-- ==================== MODALAS: NAUJA PROGRAMĖLĖS VERSIJA ==================== -->
+    <div id="update-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-app-card border-2 border-app-accent rounded-2xl w-full max-w-[380px] p-5 shadow-2xl space-y-3.5">
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            <span class="w-10 h-10 rounded-xl bg-app-accentSoft text-app-accent text-xl flex items-center justify-center shrink-0">🚀</span>
+            <div>
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-app-accent block">Atnaujinimas</span>
+              <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
+            </div>
+          </div>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v4.7</span>
+        </div>
+
+        <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
+          <div class="text-[10px] font-extrabold uppercase text-app-muted">Kas naujo:</div>
+          <p id="update-notes-text" class="text-xs leading-relaxed text-app-text font-medium"></p>
+        </div>
+
+        <p class="text-[11px] text-app-muted">Visi tavo pratimai, istorija ir nustatymai liks išsaugoti.</p>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="update-later-btn" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-input text-xs font-bold text-app-muted hover:text-app-text">Vėliau</button>
+          <button id="update-now-btn" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-accent hover:bg-app-accentHover text-app-accentText text-xs font-extrabold shadow transition active:scale-95">
+            Atnaujinti dabar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- ==================== TOAST PRANEŠIMAS ==================== -->
     <div id="toast" class="pointer-events-none fixed top-16 left-1/2 -translate-x-1/2 w-[90%] max-w-[420px] z-50 opacity-0 transition-all duration-200 -translate-y-2">
       <div class="bg-app-elevated border border-app-accent/60 text-app-text px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5">
@@ -945,7 +974,12 @@
     'use strict';
 
     /**
-     * 1. PRADINĖ TUŠČIA PROGRAMA (VARTOTOJAI PATYS SUSIKURIA SAVO PRATIMUS)
+     * DABARTINĖ PROGRAMĖLĖS VERSIJA (KEISKITE KARTU SU version.json)
+     */
+    const APP_VERSION = '4.6';
+
+    /**
+     * 1. PRADINĖ TUŠČIA PROGRAMA
      */
     const LB_TO_KG = 0.45359237;
 
@@ -1301,7 +1335,7 @@
     updateHeaderGreetingUI();
 
     /**
-     * 6. FONINIS GARSO PALAIKYMAS (UŽGESUS EKRANUI), GARSO SIGNALAS, VIBRACIJA IR WAKE LOCK
+     * 6. FONINIS GARSO PALAIKYMAS, GARSO SIGNALAS, VIBRACIJA IR WAKE LOCK
      */
     let audioCtx = null;
     let silentKeepAliveAudio = null;
@@ -1476,7 +1510,7 @@
     syncWakeLock();
 
     /**
-     * 8. PAGALBINĖS FUNKCIJOS (TOAST, CONFIRM, LAIKAS, TONAŽAS, KOPIJAVIMAS)
+     * 8. PAGALBINĖS FUNKCIJOS
      */
     let toastTimeout = null;
     function showToast(msg) {
@@ -1652,7 +1686,7 @@
     }
 
     /**
-     * 9. TIKSLUS LAIKMATIS (VEIKIA UŽRAKINUS EKRANĄ) + TAMPOMAS VALDIKLIS
+     * 9. TIKSLUS LAIKMATIS + TAMPOMAS VALDIKLIS
      */
     const timerWidget = document.getElementById('rest-timer-widget');
     const timerDisplay = document.getElementById('timer-display');
@@ -1726,6 +1760,7 @@
       if (!document.hidden) {
         syncTimersWithRealClock();
         syncWakeLock();
+        checkForAppUpdate(false);
       }
     });
     window.addEventListener('focus', syncTimersWithRealClock);
@@ -2120,7 +2155,7 @@
     }
 
     /**
-     * 13. TRENIRUOTĖS UŽBAIGIMAS IR AKIMIRKSNINIS IŠSAUGOJIMAS Į ISTORIJĄ
+     * 13. TRENIRUOTĖS UŽBAIGIMAS
      */
     document.getElementById('finish-workout-btn').addEventListener('click', () => {
       const day = program[activeState.activeDayIdx];
@@ -2453,7 +2488,7 @@
     document.getElementById('progress-exercise-select').addEventListener('change', () => renderProgressView());
 
     /**
-     * 15. TELEGRAM WEBVIEW SUDERINAMAS EKSPORTAS (PNG PERŽIŪRA + CSV/TXT KOPIJAVIMAS)
+     * 15. TELEGRAM WEBVIEW EKSPORTAS
      */
     let currentPngDataUrl = '';
     let currentPngFilename = 'Treniruote.png';
@@ -2547,7 +2582,7 @@
 
       ctx.fillStyle = textMuted;
       ctx.font = '600 18px Inter, sans-serif';
-      ctx.fillText('GymPro Tracker V4.5 • Telegram Mini App', 48, height - 26);
+      ctx.fillText(`GymPro Tracker V${APP_VERSION} • Telegram Mini App`, 48, height - 26);
 
       currentPngDataUrl = canvas.toDataURL('image/png');
       currentPngFilename = `Treniruote_${record.date}.png`;
@@ -2952,7 +2987,7 @@
     });
 
     /**
-     * 18. ISTORIJA, TRYNIMAS SU PATVIRTINIMO LANGU IR EKSPORTAS (TAB 4)
+     * 18. ISTORIJA, TRYNIMAS IR EKSPORTAS (TAB 4)
      */
     function renderHistoryView() {
       const container = document.getElementById('history-container');
@@ -3208,7 +3243,7 @@
 
     document.getElementById('export-backup-json-btn').addEventListener('click', async () => {
       const backupPayload = {
-        version: '4.5',
+        version: APP_VERSION,
         exportedAt: new Date().toISOString(),
         program,
         history,
@@ -3425,8 +3460,88 @@
       });
     });
 
+    /**
+     * 21. AUTOMATINIS ATNAUJINIMŲ TIKRINIMAS (version.json)
+     */
+    let pendingRemoteVersion = null;
+    let dismissedVersion = null;
+
+    function compareSemver(remoteVer, localVer) {
+      const rParts = String(remoteVer || '0').split('.').map(n => parseInt(n, 10) || 0);
+      const lParts = String(localVer || '0').split('.').map(n => parseInt(n, 10) || 0);
+      const len = Math.max(rParts.length, lParts.length);
+      for (let i = 0; i < len; i++) {
+        const r = rParts[i] || 0;
+        const l = lParts[i] || 0;
+        if (r > l) return 1;
+        if (r < l) return -1;
+      }
+      return 0;
+    }
+
+    async function checkForAppUpdate(manualTrigger = false) {
+      const statusEl = document.getElementById('version-check-status');
+      if (manualTrigger && statusEl) {
+        statusEl.textContent = 'Tikrinama...';
+      }
+
+      try {
+        const url = new URL('version.json', window.location.href);
+        url.searchParams.set('t', String(Date.now()));
+
+        const res = await fetch(url.toString(), { cache: 'no-store' });
+        if (!res.ok) throw new Error('version.json nerastas');
+
+        const data = await res.json();
+        const remoteVer = String(data.version || '').trim();
+        const notes = String(data.notes || 'Patobulintas veikimas ir naujos funkcijos.').trim();
+
+        if (remoteVer && compareSemver(remoteVer, APP_VERSION) > 0) {
+          pendingRemoteVersion = remoteVer;
+          if (statusEl) statusEl.textContent = `Pasiekiama nauja versija v${remoteVer}!`;
+
+          if (manualTrigger || dismissedVersion !== remoteVer) {
+            document.getElementById('update-new-version-badge').textContent = `v${remoteVer}`;
+            document.getElementById('update-notes-text').textContent = notes;
+            document.getElementById('update-modal').classList.remove('hidden');
+            haptic('medium');
+          }
+        } else {
+          if (statusEl) statusEl.textContent = `Naudojate naujausią versiją (v${APP_VERSION})`;
+          if (manualTrigger) {
+            showToast(`Naudojate naujausią versiją v${APP_VERSION} ✓`);
+          }
+        }
+      } catch (err) {
+        if (statusEl) statusEl.textContent = `Versija v${APP_VERSION} (nepavyko patikrinti serverio)`;
+        if (manualTrigger) {
+          showToast('Nepavyko pasiekti version.json failo.');
+        }
+      }
+    }
+
+    document.getElementById('app-version-badge').textContent = `v${APP_VERSION}`;
+    document.getElementById('manual-check-update-btn').addEventListener('click', () => {
+      haptic('light');
+      checkForAppUpdate(true);
+    });
+
+    document.getElementById('update-later-btn').addEventListener('click', () => {
+      dismissedVersion = pendingRemoteVersion;
+      document.getElementById('update-modal').classList.add('hidden');
+    });
+
+    document.getElementById('update-now-btn').addEventListener('click', () => {
+      haptic('success');
+      const targetVer = pendingRemoteVersion || String(Date.now());
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set('v', targetVer);
+      window.location.replace(nextUrl.toString());
+    });
+
     renderWorkoutView();
     syncTimersWithRealClock();
+    setTimeout(() => checkForAppUpdate(false), 1200);
 
     SafeStore.syncCloud(() => {
       const refreshed = loadInitialState();
