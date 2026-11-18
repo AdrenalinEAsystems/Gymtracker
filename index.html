@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>GymPro Tracker V4.3 — Telegram Mini App</title>
+  <title>GymPro Tracker V4.3.1 — Telegram Mini App</title>
   <!-- Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <!-- Tailwind CSS -->
@@ -418,7 +418,7 @@
           </div>
         </section>
 
-        <!-- Poilsio laikmačio ir garso nustatymai -->
+        <!-- Poilsio laikmačio, foninio garso, vibracijos ir ekrano nustatymai -->
         <section class="bg-app-card border border-app-border rounded-2xl p-4 space-y-3.5">
           <div class="flex items-center justify-between gap-3">
             <div>
@@ -434,7 +434,7 @@
           <div class="pt-3 border-t border-app-border/70 flex items-center justify-between gap-3">
             <div>
               <h2 class="text-sm font-extrabold">Garso signalas po poilsio</h2>
-              <p class="text-xs text-app-muted mt-0.5">Dvigubas tonas į ausines, kai baigiasi poilsio laikas</p>
+              <p class="text-xs text-app-muted mt-0.5">Trigubas tonas į ausines (veikia ir užgesus ekranui)</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer shrink-0">
               <input id="sound-enabled-toggle" type="checkbox" class="sr-only peer" />
@@ -442,9 +442,31 @@
             </label>
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
+          <div class="pt-3 border-t border-app-border/70 flex items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-extrabold">Vibracija pasibaigus poilsiui</h2>
+              <p class="text-xs text-app-muted mt-0.5">Stiprus vibracijos impulsas, kai laikas baigiasi</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+              <input id="vibration-enabled-toggle" type="checkbox" class="sr-only peer" />
+              <div class="w-12 h-7 bg-app-input peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-app-accent"></div>
+            </label>
+          </div>
+
+          <div class="pt-3 border-t border-app-border/70 flex items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-extrabold">Neužgesinti ekrano treniruotės metu</h2>
+              <p class="text-xs text-app-muted mt-0.5">Telefonas pats neužrakins ekrano, kol atidaryta programėlė</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+              <input id="wake-lock-toggle" type="checkbox" class="sr-only peer" />
+              <div class="w-12 h-7 bg-app-input peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-app-accent"></div>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-1">
             <button id="test-sound-btn" type="button" class="min-h-[42px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-extrabold hover:opacity-90 active:scale-95 transition flex items-center justify-center gap-1.5">
-              <span>🔔 Patikrinti garsą</span>
+              <span>🔔 Patikrinti garsą / vibro</span>
             </button>
             <button id="reset-timer-pos-btn" type="button" class="min-h-[42px] px-3 rounded-xl bg-app-elevated border border-app-border text-xs font-bold text-app-muted hover:text-app-text active:scale-95 transition flex items-center justify-center gap-1.5">
               <span>📍 Laikmačio vieta</span>
@@ -492,7 +514,7 @@
                 </div>
                 <p class="text-[11px] text-app-muted leading-relaxed">iPhone nereikia atskirų leidimų, tačiau Apple reikalauja patvirtinti per Safari:</p>
                 <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-app-muted leading-relaxed">
-                  <li>Spauskite mygtuką viršuje (arba <strong class="text-app-text">⋯ → Add to Home Screen</strong>).</li>
+                  <li>Spauskite mygtą viršuje (arba <strong class="text-app-text">⋯ → Add to Home Screen</strong>).</li>
                   <li>Atsidariusiame lange apačioje spauskite <strong class="text-app-text">Bendrinti (Share ikona ↑) → „Pridėti prie pradžios ekrano“ (Add to Home Screen)</strong>.</li>
                 </ol>
               </div>
@@ -944,7 +966,7 @@
     }
 
     /**
-     * 3. TELEGRAM WEBAPP IR DUOMENŲ SAUGYKLA (IŠSAUGOMI V4.2 RAKTAI + CLOUDSTORAGE 4KB VALDYMAS)
+     * 3. TELEGRAM WEBAPP IR DUOMENŲ SAUGYKLA
      */
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
     let tgUser = { id: 'guest', firstName: '' };
@@ -964,7 +986,6 @@
       console.warn('Telegram SDK init warning:', e);
     }
 
-    // Išlaikomi tikslūs raktai iš V4.2, kad nedingtų vartotojo progresas
     const KEYS = {
       PROGRAM: 'gympro_v4_program',
       HISTORY: 'gympro_v4_history',
@@ -972,7 +993,6 @@
       ACTIVE: 'gympro_v4_active'
     };
 
-    // Papildomi legacy raktai su user prefix iš V4.2 migracijai
     const LEGACY_USER_PREFIX = `gympro_v4_${tgUser.id}_`;
 
     function isValidProgramSchema(data) {
@@ -1010,9 +1030,11 @@
       density: 'default',
       scale: 'md',
       soundEnabled: true,
+      vibrationEnabled: true,
+      wakeLockEnabled: false,
       showRestTimer: true,
       customGreeting: '',
-      timerPos: null // { left: number, top: number }
+      timerPos: null
     };
 
     const SafeStore = {
@@ -1041,7 +1063,6 @@
           let payload = val;
           let serialized = JSON.stringify(payload);
 
-          // Telegram CloudStorage griežtas 4096 baitų limitas: jei istorija didesnė, kerpame seniausius įrašus debesyje (lokaliai lieka visi)
           if (key === KEYS.HISTORY && Array.isArray(payload) && serialized.length > 3800) {
             const trimmed = [...payload];
             while (trimmed.length > 1 && JSON.stringify(trimmed).length > 3800) {
@@ -1086,7 +1107,6 @@
                 const cloudHist = JSON.parse(items[KEYS.HISTORY]);
                 if (Array.isArray(cloudHist)) {
                   const localHist = this.readLocal(KEYS.HISTORY) || [];
-                  // Sujungiame pagal ID, kad neprarastume naujesnių įrašų
                   const map = new Map();
                   [...localHist, ...cloudHist].forEach(item => {
                     if (item && item.id) map.set(String(item.id), item);
@@ -1127,22 +1147,19 @@
     };
 
     /**
-     * 4. PRADINIS DUOMENŲ UŽKROVIMAS IR MIGRACIJA IŠ V4.2
+     * 4. PRADINIS DUOMENŲ UŽKROVIMAS
      */
     function loadInitialState() {
-      // Programa
       let rawProg = SafeStore.readLocal(KEYS.PROGRAM);
       if (!rawProg) rawProg = SafeStore.readLocal(`${LEGACY_USER_PREFIX}program`);
       const loadedProgram = normalizeProgram(rawProg);
 
-      // Istorija
       let rawHist = SafeStore.readLocal(KEYS.HISTORY);
       if (!Array.isArray(rawHist)) {
         const legacyHist = SafeStore.readLocal(`${LEGACY_USER_PREFIX}history`);
         rawHist = Array.isArray(legacyHist) ? legacyHist : [];
       }
 
-      // Nustatymai
       let rawSettings = SafeStore.readLocal(KEYS.SETTINGS);
       if (!rawSettings || typeof rawSettings !== 'object') {
         rawSettings = {
@@ -1157,7 +1174,6 @@
         rawSettings = { ...DEFAULT_SETTINGS, ...rawSettings };
       }
 
-      // Aktyvi treniruotė
       let rawActive = SafeStore.readLocal(KEYS.ACTIVE);
       if (!rawActive || typeof rawActive !== 'object') {
         rawActive = {
@@ -1232,9 +1248,47 @@
     updateHeaderGreetingUI();
 
     /**
-     * 6. WEB AUDIO API (GARSO SIGNALAS AUSINĖMS)
+     * 6. FONINIS GARSO PALAIKYMAS (UŽGESUS EKRANUI), GARSO SIGNALAS, VIBRACIJA IR WAKE LOCK
      */
     let audioCtx = null;
+    let silentKeepAliveAudio = null;
+    let wakeLockSentinel = null;
+
+    const SILENT_WAV_DATA_URI = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+    function startBackgroundAudioKeepAlive() {
+      if (!settings.soundEnabled) return;
+      try {
+        if (!silentKeepAliveAudio) {
+          silentKeepAliveAudio = new Audio(SILENT_WAV_DATA_URI);
+          silentKeepAliveAudio.loop = true;
+          silentKeepAliveAudio.volume = 0.01;
+        }
+        const playPromise = silentKeepAliveAudio.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(() => {});
+        }
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: 'Poilsio laikmatis',
+            artist: 'GymPro Tracker'
+          });
+          navigator.mediaSession.playbackState = 'playing';
+        }
+      } catch (e) {}
+    }
+
+    function stopBackgroundAudioKeepAlive() {
+      try {
+        if (silentKeepAliveAudio) {
+          silentKeepAliveAudio.pause();
+          silentKeepAliveAudio.currentTime = 0;
+        }
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'none';
+        }
+      } catch (e) {}
+    }
 
     function unlockAudioContext() {
       try {
@@ -1245,33 +1299,68 @@
       } catch (e) {}
     }
 
-    function playDoubleBeep(forceTest = false) {
-      if (!forceTest && !settings.soundEnabled) return;
+    function triggerRestEndAlert(forceTest = false) {
+      if (forceTest || settings.soundEnabled) {
+        try {
+          unlockAudioContext();
+          if (audioCtx) {
+            const now = audioCtx.currentTime;
+            const scheduleTone = (startTime, freq, duration = 0.16) => {
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, startTime);
+
+              gain.gain.setValueAtTime(0.001, startTime);
+              gain.gain.exponentialRampToValueAtTime(0.45, startTime + 0.015);
+              gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(startTime);
+              osc.stop(startTime + duration + 0.02);
+            };
+
+            scheduleTone(now, 880, 0.14);
+            scheduleTone(now + 0.19, 880, 0.14);
+            scheduleTone(now + 0.38, 1318.51, 0.24);
+          }
+        } catch (e) {
+          console.warn('Audio playback skipped:', e);
+        }
+      }
+
+      if (forceTest || settings.vibrationEnabled) {
+        try {
+          if (navigator && typeof navigator.vibrate === 'function') {
+            navigator.vibrate([350, 120, 350, 120, 550]);
+          }
+        } catch (e) {}
+        try {
+          if (tg && tg.HapticFeedback) {
+            tg.HapticFeedback.notificationOccurred('success');
+            setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 250);
+            setTimeout(() => tg.HapticFeedback.impactOccurred('heavy'), 500);
+          }
+        } catch (e) {}
+      }
+    }
+
+    async function syncWakeLock() {
       try {
-        unlockAudioContext();
-        if (!audioCtx) return;
-
-        const now = audioCtx.currentTime;
-        const scheduleTone = (startTime, freq) => {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(freq, startTime);
-
-          gain.gain.setValueAtTime(0.001, startTime);
-          gain.gain.exponentialRampToValueAtTime(0.35, startTime + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.17);
-
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(startTime);
-          osc.stop(startTime + 0.18);
-        };
-
-        scheduleTone(now, 880);
-        scheduleTone(now + 0.22, 1174.66);
+        if (settings.wakeLockEnabled) {
+          if ('wakeLock' in navigator && !wakeLockSentinel) {
+            wakeLockSentinel = await navigator.wakeLock.request('screen');
+            wakeLockSentinel.addEventListener('release', () => {
+              wakeLockSentinel = null;
+            });
+          }
+        } else if (wakeLockSentinel) {
+          await wakeLockSentinel.release();
+          wakeLockSentinel = null;
+        }
       } catch (e) {
-        console.warn('Audio playback skipped:', e);
+        console.warn('WakeLock skipped:', e);
       }
     }
 
@@ -1331,6 +1420,7 @@
     applyTheme(settings.theme);
     applyDensity(settings.density);
     applyScale(settings.scale);
+    syncWakeLock();
 
     /**
      * 8. PAGALBINĖS FUNKCIJOS (TOAST, CONFIRM, LAIKAS, TONAŽAS, KOPIJAVIMAS)
@@ -1448,9 +1538,6 @@
       return d;
     }
 
-    /**
-     * Randa paskutinį atliktą rezultatą konkrečiam pratimui iš istorijos (pagal pratimo pavadinimą)
-     */
     function findLastHistoryRecordForExercise(exName) {
       for (let i = 0; i < history.length; i++) {
         const sess = history[i];
@@ -1532,7 +1619,6 @@
     }
 
     function syncTimersWithRealClock() {
-      // 1. Aktyvios treniruotės trukmė pagal realų laiko antspaudą
       if (activeState.workoutStartTime) {
         const elapsedEl = document.getElementById('session-elapsed-label');
         if (elapsedEl) {
@@ -1540,15 +1626,14 @@
         }
       }
 
-      // 2. Poilsio laikmatis pagal restEndTime
       if (activeState.restEndTime) {
         const remainingMs = activeState.restEndTime - Date.now();
         if (remainingMs <= 0) {
           activeState.restEndTime = null;
           persistActiveState();
           timerWidget.classList.add('hidden');
-          haptic('success');
-          playDoubleBeep(false);
+          triggerRestEndAlert(false);
+          stopBackgroundAudioKeepAlive();
           showToast('Poilsio laikas baigėsi! Kitas priėjimas 💪');
         } else {
           timerDisplay.textContent = formatSec(remainingMs / 1000);
@@ -1567,6 +1652,7 @@
     function startRestTimer(sec) {
       if (!sec || sec <= 0) return;
       unlockAudioContext();
+      startBackgroundAudioKeepAlive();
       activeState.restEndTime = Date.now() + sec * 1000;
       persistActiveState();
       syncTimersWithRealClock();
@@ -1574,14 +1660,17 @@
 
     function stopRestTimer() {
       activeState.restEndTime = null;
+      stopBackgroundAudioKeepAlive();
       persistActiveState();
       timerWidget.classList.add('hidden');
     }
 
-    // Nuolatinis tikrinimas kas 500ms + atrakinus ekraną (visibilitychange / focus)
-    globalTickInterval = setInterval(syncTimersWithRealClock, 500);
+    globalTickInterval = setInterval(syncTimersWithRealClock, 400);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) syncTimersWithRealClock();
+      if (!document.hidden) {
+        syncTimersWithRealClock();
+        syncWakeLock();
+      }
     });
     window.addEventListener('focus', syncTimersWithRealClock);
 
@@ -1604,7 +1693,6 @@
       haptic('light');
     });
 
-    // Laikmačio tampymas pirštu / pele (Drag & Drop)
     (function initDraggableTimer() {
       const dragHandle = document.getElementById('timer-drag-handle');
       let isDragging = false;
@@ -1805,7 +1893,6 @@
             : 'bg-app-card border-app-border'
         }`;
 
-        // Paslepiame tuščias technikos pastabas
         const cleanNote = (typeof ex.note === 'string') ? ex.note.trim() : '';
         const noteHtml = cleanNote.length > 0
           ? `<p class="ex-note-text text-xs text-app-muted mt-1.5 leading-relaxed">${escapeHtml(cleanNote)}</p>`
@@ -1961,7 +2048,7 @@
     }
 
     /**
-     * 13. TRENIRUOTĖS UŽBAIGIMAS IR AKIMIRKSNINIS IŠSAUGOJIMAS Į ISTORIJĄ (CRITICAL FIX)
+     * 13. TRENIRUOTĖS UŽBAIGIMAS IR AKIMIRKSNINIS IŠSAUGOJIMAS Į ISTORIJĄ
      */
     document.getElementById('finish-workout-btn').addEventListener('click', () => {
       const day = program[activeState.activeDayIdx];
@@ -2051,18 +2138,16 @@
         exercises: compactExercises
       };
 
-      // 1. Akimirksniu įrašome į istoriją
       history.unshift(sessionRecord);
       if (history.length > 80) history = history.slice(0, 80);
       persistHistory();
 
-      // 2. Akimirksniu išvalome aktyvią treniruotę, varneles, svorių juodraštį ir laikmačius
       activeState.workoutStartTime = null;
       activeState.restEndTime = null;
       activeState.draft = {};
+      stopBackgroundAudioKeepAlive();
       persistActiveState();
 
-      // 3. Atnaujiname visus vaizdus
       renderWorkoutView();
       renderHistoryView();
       renderProgressView();
@@ -2358,7 +2443,7 @@
 
       ctx.fillStyle = textMuted;
       ctx.font = '600 18px Inter, sans-serif';
-      ctx.fillText('GymPro Tracker V4.3 • Telegram Mini App', 48, height - 26);
+      ctx.fillText('GymPro Tracker V4.3.1 • Telegram Mini App', 48, height - 26);
 
       currentPngDataUrl = canvas.toDataURL('image/png');
       currentPngFilename = `Treniruote_${record.date}.png`;
@@ -2813,7 +2898,6 @@
       showToast('Atstatytas numatytasis pasveikinimas');
     });
 
-    // Poilsio laikmačio matomumas
     const showRestTimerToggle = document.getElementById('show-rest-timer-toggle');
     showRestTimerToggle.checked = Boolean(settings.showRestTimer);
     showRestTimerToggle.addEventListener('change', () => {
@@ -2832,24 +2916,45 @@
       showToast('Laikmačio pozicija grąžinta į pradinę vietą');
     });
 
-    // Garso signalas
     const soundToggle = document.getElementById('sound-enabled-toggle');
     soundToggle.checked = Boolean(settings.soundEnabled);
     soundToggle.addEventListener('change', () => {
       settings.soundEnabled = soundToggle.checked;
       persistSettings();
-      if (settings.soundEnabled) unlockAudioContext();
+      if (settings.soundEnabled) {
+        unlockAudioContext();
+        if (activeState.restEndTime) startBackgroundAudioKeepAlive();
+      } else {
+        stopBackgroundAudioKeepAlive();
+      }
       haptic('light');
       showToast(settings.soundEnabled ? 'Garso signalas įjungtas' : 'Garso signalas išjungtas');
     });
 
-    document.getElementById('test-sound-btn').addEventListener('click', () => {
-      playDoubleBeep(true);
-      haptic('medium');
-      showToast('Sugrotas poilsio pabaigos signalas');
+    const vibrationToggle = document.getElementById('vibration-enabled-toggle');
+    vibrationToggle.checked = Boolean(settings.vibrationEnabled);
+    vibrationToggle.addEventListener('change', () => {
+      settings.vibrationEnabled = vibrationToggle.checked;
+      persistSettings();
+      haptic('light');
+      showToast(settings.vibrationEnabled ? 'Vibracija po poilsio įjungta' : 'Vibracija išjungta');
     });
 
-    // Pridėjimas į pagrindinį ekraną
+    const wakeLockToggle = document.getElementById('wake-lock-toggle');
+    wakeLockToggle.checked = Boolean(settings.wakeLockEnabled);
+    wakeLockToggle.addEventListener('change', () => {
+      settings.wakeLockEnabled = wakeLockToggle.checked;
+      persistSettings();
+      syncWakeLock();
+      haptic('light');
+      showToast(settings.wakeLockEnabled ? 'Ekranas neužges treniruotės metu' : 'Ekrano užrakinimas pagal telefono nustatymus');
+    });
+
+    document.getElementById('test-sound-btn').addEventListener('click', () => {
+      triggerRestEndAlert(true);
+      showToast('Patikrintas garsas ir vibracija!');
+    });
+
     const guidePanel = document.getElementById('homescreen-guide-panel');
     const guideChevron = document.getElementById('guide-chevron');
 
@@ -2912,10 +3017,9 @@
       });
     });
 
-    // Atsarginė kopija (JSON)
     document.getElementById('export-backup-json-btn').addEventListener('click', async () => {
       const backupPayload = {
-        version: '4.3',
+        version: '4.3.1',
         exportedAt: new Date().toISOString(),
         program,
         history,
@@ -2957,6 +3061,7 @@
             applyScale(settings.scale);
             customGreetingInput.value = settings.customGreeting || '';
             updateHeaderGreetingUI();
+            syncWakeLock();
           }
         } else {
           throw new Error('Netinkamas JSON formatas');
@@ -3131,11 +3236,9 @@
       });
     });
 
-    // Pradinis programėlės atvaizdavimas
     renderWorkoutView();
     syncTimersWithRealClock();
 
-    // Sinchronizacija su Telegram CloudStorage fone
     SafeStore.syncCloud(() => {
       const refreshed = loadInitialState();
       program = refreshed.program;
@@ -3146,9 +3249,12 @@
       updateHeaderGreetingUI();
       showRestTimerToggle.checked = Boolean(settings.showRestTimer);
       soundToggle.checked = Boolean(settings.soundEnabled);
+      vibrationToggle.checked = Boolean(settings.vibrationEnabled);
+      wakeLockToggle.checked = Boolean(settings.wakeLockEnabled);
       applyTheme(settings.theme);
       applyDensity(settings.density);
       applyScale(settings.scale);
+      syncWakeLock();
       renderWorkoutView();
       syncTimersWithRealClock();
     });
