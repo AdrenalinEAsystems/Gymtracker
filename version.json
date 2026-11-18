@@ -1,4 +1,4 @@
 {
-  "version": "1.13",
-  "notes": "Pridėtas pasisveikinimo ir instrukcijos langas naujiems vartotojams, rodomas tol, kol nepradedama kurti pirmoji programa."
+  "version": "1.14",
+  "notes": "Sutvarkytas pradinis paleidimas ir pridėtas klaidų detektorius, jei failas įkeliamas nepilnai."
 }
