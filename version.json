@@ -1,4 +1,4 @@
 {
-  "version": "1.12",
-  "notes": "Pataisytas mygtukų veikimas ir paspaudimų blokavimas Telegram lange."
+  "version": "1.13",
+  "notes": "Pridėtas pasisveikinimo ir instrukcijos langas naujiems vartotojams, rodomas tol, kol nepradedama kurti pirmoji programa."
 }
