@@ -1,4 +1,4 @@
 {
-  "version": "1.14",
-  "notes": "Sutvarkytas pradinis paleidimas ir pridėtas klaidų detektorius, jei failas įkeliamas nepilnai."
+  "version": "1.15",
+  "notes": "Tiesioginis dalinimosi mygtukas baigus treniruotę, švaresnė ataskaitos kortelė ir sustiprinta vibracija."
 }
