@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.15 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.16 — Telegram Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -100,8 +100,8 @@
     html[data-density="compact"] .ex-note-text { margin-top: 0.2rem !important; line-height: 1.3 !important; }
 
     :root {
-      --safe-top-sys: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
-      --safe-top-content: var(--tg-content-safe-area-inset-top, 0px);
+      --safe-top-sys: 0px;
+      --safe-top-content: 0px;
       --safe-top-total: calc(var(--safe-top-sys) + var(--safe-top-content));
       --safe-bottom-total: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
     }
@@ -464,7 +464,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-extrabold">GymPro Tracker</span>
-                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.15</span>
+                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.16</span>
               </div>
               <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
             </div>
@@ -764,7 +764,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.15</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.16</span>
         </div>
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
           <div class="text-[10px] font-extrabold uppercase text-app-muted">Kas naujo:</div>
@@ -791,7 +791,7 @@
   <script>
     'use strict';
 
-    const APP_VERSION = '1.15';
+    const APP_VERSION = '1.16';
     // RELEASE_NOTES: Sutvarkytas viršutinės juostos atitraukimas (fullscreen / darbalaukio nuoroda), į istoriją įtraukiamos tik pažymėtos serijos, pridėtas 1RM rekordų sekimas, pratimų ID susiejimas ir saugesnė sinchronizacija.
 
     function switchTab(tabName) {
@@ -858,17 +858,22 @@
     function applyTelegramSafeAreas() {
       try {
         if (!tg) return;
+        const sysBottom = (tg.safeAreaInset && typeof tg.safeAreaInset.bottom === 'number') ? tg.safeAreaInset.bottom : 0;
+        if (sysBottom > 0) {
+          document.documentElement.style.setProperty('--safe-bottom-total', `${sysBottom}px`);
+        }
+
+        // Kai ne fullscreen (įprasta Telegram juosta viršuje su X Gymtracker), turinys prasideda iškart po ja
+        if (!tg.isFullscreen) {
+          document.documentElement.style.setProperty('--safe-top-sys', '0px');
+          document.documentElement.style.setProperty('--safe-top-content', '0px');
+          return;
+        }
+
         const sysTop = (tg.safeAreaInset && typeof tg.safeAreaInset.top === 'number') ? tg.safeAreaInset.top : 0;
         const contentTop = (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.top === 'number') ? tg.contentSafeAreaInset.top : 0;
-        const sysBottom = (tg.safeAreaInset && typeof tg.safeAreaInset.bottom === 'number') ? tg.safeAreaInset.bottom : 0;
-
-        if (sysTop > 0) document.documentElement.style.setProperty('--safe-top-sys', `${sysTop}px`);
-        if (contentTop > 0) {
-          document.documentElement.style.setProperty('--safe-top-content', `${contentTop}px`);
-        } else if (tg.isFullscreen) {
-          document.documentElement.style.setProperty('--safe-top-content', '46px');
-        }
-        if (sysBottom > 0) document.documentElement.style.setProperty('--safe-bottom-total', `${sysBottom}px`);
+        document.documentElement.style.setProperty('--safe-top-sys', `${sysTop}px`);
+        document.documentElement.style.setProperty('--safe-top-content', `${contentTop > 0 ? contentTop : 46}px`);
       } catch (e) {}
     }
 
