@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/b098324f-3c20-43cc-b103-5728618addeb" alt="GymPro Fitness Analytics Logo" width="140" height="140" />
+  <img src="https://github.com/user-attachments/assets/b098324f-3c20-43cc-b103-5728618addeb" alt="GymPro Fitness Analytics Logo" width="200" height="200" />
   <h1>GymPro Tracker</h1>
   <p><strong>Greitas, minimalus ir funkcionalus treniruočių dienoraštis tiesiai Telegrame</strong></p>
 
