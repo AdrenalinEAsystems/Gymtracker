@@ -1,4 +1,4 @@
 {
-  "version": "1.17",
-  "notes": "Saugesnė sinchronizacija (debesies kopija gabalais, senų gabalų valymas), lietuviško kablelio svoriuose palaikymas, XSS apsauga, pratimo pervadinimo klausimas, Telegram braukimo/uždarymo apsauga, drop-set ir 1RM taisymai."
+  "version": "1.18",
+  "notes": "Pridėtas treniruočių dienų eiliškumo keitimas (↑ / ↓) skiltyje „Programa“."
 }
