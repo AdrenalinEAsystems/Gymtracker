@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.17 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.18 — Telegram Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -474,7 +474,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-extrabold">GymPro Tracker</span>
-                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.17</span>
+                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.18</span>
               </div>
               <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
             </div>
@@ -774,7 +774,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.17</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.18</span>
         </div>
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
           <div class="text-[10px] font-extrabold uppercase text-app-muted">Kas naujo:</div>
@@ -801,8 +801,8 @@
   <script>
     'use strict';
 
-    const APP_VERSION = '1.17';
-    // RELEASE_NOTES: Saugesnė sinchronizacija (debesies kopija gabalais, senų gabalų valymas), lietuviško kablelio svoriuose palaikymas, XSS apsauga, pratimo pervadinimo klausimas, Telegram braukimo/uždarymo apsauga, drop-set ir 1RM taisymai.
+    const APP_VERSION = '1.18';
+    // RELEASE_NOTES: Pridėtas treniruočių dienų eiliškumo keitimas (↑ / ↓) skiltyje „Programa“.
 
     function switchTab(tabName) {
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -2531,9 +2531,13 @@
               <h2 class="text-sm font-black truncate">${escapeHtml(day.title)}</h2>
               <p class="text-[11px] text-app-muted truncate">${escapeHtml(day.subtitle || 'Treniruotės diena')}</p>
             </div>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <button type="button" data-edit-day="${dIdx}" class="p-2 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-85" title="Redaguoti dieną">✏️</button>
-              ${program.length > 1 ? `<button type="button" data-del-day="${dIdx}" class="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold" title="Ištrinti dieną">🗑</button>` : ''}
+            <div class="flex items-center gap-1 shrink-0">
+              ${program.length > 1 ? `
+                <button type="button" data-move-day-up="${dIdx}" ${dIdx === 0 ? 'disabled' : ''} class="w-8 h-8 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-85 disabled:opacity-30 active:scale-95 transition" title="Perkelti dieną aukštyn">↑</button>
+                <button type="button" data-move-day-down="${dIdx}" ${dIdx === program.length - 1 ? 'disabled' : ''} class="w-8 h-8 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-85 disabled:opacity-30 active:scale-95 transition" title="Perkelti dieną žemyn">↓</button>
+              ` : ''}
+              <button type="button" data-edit-day="${dIdx}" class="w-8 h-8 rounded-xl bg-app-elevated border border-app-border text-xs font-bold hover:opacity-85 flex items-center justify-center" title="Redaguoti dieną">✏️</button>
+              ${program.length > 1 ? `<button type="button" data-del-day="${dIdx}" class="w-8 h-8 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs font-bold flex items-center justify-center" title="Ištrinti dieną">🗑</button>` : ''}
             </div>
           </div>
           <div class="space-y-2">
@@ -2717,6 +2721,28 @@
     document.getElementById('editor-container').addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
+      if (btn.dataset.moveDayUp !== undefined) {
+        const dIdx = Number(btn.dataset.moveDayUp);
+        if (dIdx > 0) {
+          [program[dIdx - 1], program[dIdx]] = [program[dIdx], program[dIdx - 1]];
+          if (activeState.activeDayIdx === dIdx) activeState.activeDayIdx = dIdx - 1;
+          else if (activeState.activeDayIdx === dIdx - 1) activeState.activeDayIdx = dIdx;
+          persistActiveState();
+          saveProgramChanges();
+          haptic('light');
+        }
+      }
+      if (btn.dataset.moveDayDown !== undefined) {
+        const dIdx = Number(btn.dataset.moveDayDown);
+        if (dIdx < program.length - 1) {
+          [program[dIdx + 1], program[dIdx]] = [program[dIdx], program[dIdx + 1]];
+          if (activeState.activeDayIdx === dIdx) activeState.activeDayIdx = dIdx + 1;
+          else if (activeState.activeDayIdx === dIdx + 1) activeState.activeDayIdx = dIdx;
+          persistActiveState();
+          saveProgramChanges();
+          haptic('light');
+        }
+      }
       if (btn.dataset.addEx !== undefined) openExerciseModal(Number(btn.dataset.addEx), -1);
       if (btn.dataset.editDay !== undefined) openDayModal(Number(btn.dataset.editDay));
       if (btn.dataset.delDay !== undefined) {
