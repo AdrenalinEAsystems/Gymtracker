@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.16 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.17 — Telegram Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,9 +14,17 @@
     window.addEventListener('error', function (e) {
       var box = document.getElementById('workout-container');
       if (box && !box.innerHTML.trim()) {
-        box.innerHTML = '<div style="padding:16px;border-radius:14px;background:#450a0a;border:1px solid #ef4444;color:#fecaca;font-size:12px;">' +
-          '<strong>Klaida paleidžiant kodą:</strong><br>' + (e.message || 'Nežinoma klaida') +
-          '<br><span style="opacity:.8">Patikrinkite, ar failas nebuvo nukirptas įkeliant (turi baigtis &lt;/html&gt;).</span></div>';
+        var wrap = document.createElement('div');
+        wrap.style.cssText = 'padding:16px;border-radius:14px;background:#450a0a;border:1px solid #ef4444;color:#fecaca;font-size:12px;';
+        var title = document.createElement('strong');
+        title.textContent = 'Klaida paleidžiant kodą:';
+        var msg = document.createElement('div');
+        msg.textContent = e.message || 'Nežinoma klaida';
+        var hint = document.createElement('div');
+        hint.style.opacity = '.8';
+        hint.textContent = 'Patikrinkite, ar failas nebuvo nukirptas įkeliant (turi baigtis </html>).';
+        wrap.appendChild(title); wrap.appendChild(msg); wrap.appendChild(hint);
+        box.appendChild(wrap);
       }
     });
 
@@ -86,6 +94,8 @@
     html[data-scale="sm"] { font-size: 14.4px; }
     html[data-scale="md"] { font-size: 16px; }
     html[data-scale="lg"] { font-size: 17.9px; }
+    /* dvh seka tikrą matomą aukštį mobiliuose WebView (100vh jį viršija); senesni varikliai ignoruoja */
+    html body.min-h-screen, html #app-shell.min-h-screen { min-height: 100dvh; }
 
     html[data-density="compact"] #workout-container { padding-top: 0.5rem; padding-left: 0.625rem; padding-right: 0.625rem; }
     html[data-density="compact"] #workout-container > * + * { margin-top: 0.45rem !important; }
@@ -464,7 +474,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-extrabold">GymPro Tracker</span>
-                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.16</span>
+                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.17</span>
               </div>
               <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
             </div>
@@ -745,7 +755,7 @@
     <div id="confirm-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="bg-app-card border border-app-border rounded-2xl w-full max-w-[360px] p-5 shadow-2xl">
         <h3 id="confirm-title" class="text-base font-extrabold">Patvirtinimas</h3>
-        <p id="confirm-text" class="text-xs text-app-muted mt-1.5 leading-relaxed"></p>
+        <p id="confirm-text" class="text-xs text-app-muted mt-1.5 leading-relaxed whitespace-pre-line"></p>
         <div class="grid grid-cols-2 gap-2.5 mt-5">
           <button id="confirm-cancel" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-input text-xs font-bold">Atšaukti</button>
           <button id="confirm-ok" type="button" class="min-h-[44px] px-3 rounded-xl bg-app-accent text-app-accentText text-xs font-extrabold">Patvirtinti</button>
@@ -764,7 +774,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.16</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.17</span>
         </div>
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
           <div class="text-[10px] font-extrabold uppercase text-app-muted">Kas naujo:</div>
@@ -791,8 +801,8 @@
   <script>
     'use strict';
 
-    const APP_VERSION = '1.16';
-    // RELEASE_NOTES: Sutvarkytas viršutinės juostos atitraukimas (fullscreen / darbalaukio nuoroda), į istoriją įtraukiamos tik pažymėtos serijos, pridėtas 1RM rekordų sekimas, pratimų ID susiejimas ir saugesnė sinchronizacija.
+    const APP_VERSION = '1.17';
+    // RELEASE_NOTES: Saugesnė sinchronizacija (debesies kopija gabalais, senų gabalų valymas), lietuviško kablelio svoriuose palaikymas, XSS apsauga, pratimo pervadinimo klausimas, Telegram braukimo/uždarymo apsauga, drop-set ir 1RM taisymai.
 
     function switchTab(tabName) {
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -822,8 +832,21 @@
     });
 
     const LB_TO_KG = 0.45359237;
+    function parseDecimalWeight(val) {
+      if (val === undefined || val === null) return 0;
+      const n = parseFloat(String(val).replace(',', '.'));
+      return Number.isFinite(n) ? n : 0;
+    }
+    function sanitizeDecimalInput(raw) {
+      let val = String(raw ?? '').replace(/,/g, '.').replace(/[^0-9.]/g, '');
+      const parts = val.split('.');
+      if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+      const num = parseFloat(val);
+      if (!Number.isNaN(num) && num > 5000) val = '5000';
+      return val;
+    }
     function toKg(weight, unit) {
-      const w = parseFloat(weight) || 0;
+      const w = parseDecimalWeight(weight);
       return unit === 'lb' ? w * LB_TO_KG : w;
     }
     function normalizeUnit(unit) {
@@ -881,6 +904,12 @@
       if (tg) {
         if (typeof tg.ready === 'function') tg.ready();
         if (typeof tg.expand === 'function') tg.expand();
+        // Braukimas žemyn neturi užverti/sumažinti programos treniruotės metu (Mini Apps API 7.7+)
+        try {
+          if (typeof tg.isVersionAtLeast === 'function' && tg.isVersionAtLeast('7.7') && typeof tg.disableVerticalSwipes === 'function') {
+            tg.disableVerticalSwipes();
+          }
+        } catch (err) {}
         if (tg.isFullscreen && typeof tg.exitFullscreen === 'function') {
           try { tg.exitFullscreen(); } catch (err) {}
         }
@@ -905,15 +934,8 @@
       HISTORY: `${USER_NS}history`,
       SETTINGS: `${USER_NS}settings`,
       ACTIVE: `${USER_NS}active`,
-      META: `${USER_NS}meta`
-    };
-
-    const CLOUD_KEYS = {
-      PROGRAM: 'gympro_v4_program',
-      HISTORY: 'gympro_v4_history',
-      SETTINGS: 'gympro_v4_settings',
-      ACTIVE: 'gympro_v4_active',
-      META: 'gympro_v5_meta'
+      META: `${USER_NS}meta`,
+      TOMB: `${USER_NS}tomb`
     };
 
     const LEGACY_KEYS = {
@@ -963,7 +985,65 @@
       timerPos: null
     };
 
+    // ---- Duomenų valymas (XSS + sugadinti JSON apsauga). Naudojama: paleidžiant, importe, debesies sulieime ----
+    function sanitizeSession(s) {
+      if (!s || typeof s !== 'object' || !Array.isArray(s.exercises)) return null;
+      const num = v => { const x = Number(v); return Number.isFinite(x) ? x : 0; };
+      const str = v => (v === undefined || v === null) ? '' : String(v);
+      return {
+        id: num(s.id), date: str(s.date), startTime: str(s.startTime), endTime: str(s.endTime),
+        dayId: str(s.dayId), dayTitle: str(s.dayTitle), durationSec: num(s.durationSec),
+        totalVolume: num(s.totalVolume), totalSets: num(s.totalSets),
+        prs: Array.isArray(s.prs) ? s.prs.map(str) : [],
+        exercises: s.exercises.filter(e => e && typeof e === 'object').map(e => {
+          const out = { name: str(e.name), type: e.type === 'cardio' ? 'cardio' : 'strength' };
+          if (e.exerciseId) out.exerciseId = str(e.exerciseId);
+          if (out.type === 'cardio') out.minutes = str(e.minutes || '10');
+          else out.unit = normalizeUnit(e.unit);
+          out.sets = (Array.isArray(e.sets) ? e.sets : [])
+            .filter(x => x && typeof x === 'object')
+            .map(x => ({ w: str(x.w), r: str(x.r), drop: Boolean(x.drop) }));
+          return out;
+        })
+      };
+    }
+
+    // Seniems įrašams be exerciseId priskiriam id pagal pavadinimą (tik jei pavadinimas programoje vienareikšmis)
+    function backfillExerciseIds(prog, hist) {
+      const byName = new Map();
+      prog.forEach(d => d.exercises.forEach(ex => {
+        if (!byName.has(ex.name)) byName.set(ex.name, new Set());
+        byName.get(ex.name).add(ex.id);
+      }));
+      let changed = false;
+      hist.forEach(sess => sess.exercises.forEach(e => {
+        if (e.exerciseId) return;
+        const ids = byName.get(e.name);
+        if (ids && ids.size === 1) { e.exerciseId = Array.from(ids)[0]; changed = true; }
+      }));
+      return changed;
+    }
+
+    // ---- Telegram CloudStorage: riba 4096 simb. vienam raktui, todėl skaidom į gabalus ----
+    // Ne-ASCII simboliai užkoduojami \uXXXX, tad simbolių skaičius == baitų skaičius (saugu abiem atvejais).
+    function asciiJson(o) {
+      return JSON.stringify(o).replace(/[\u0080-\uFFFF]/g, c => '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+    }
+
+    const CLOUD_PREFIX = 'gp6_';
+    const CLOUD_CHUNK = 3900;
+    const CLOUD_HISTORY_MAX = 300;
+    const STORE_NAMES = ['program', 'history', 'settings', 'active'];
+    const MAX_STALE_SESSION_MS = 8 * 3600 * 1000;
+
+    function cloudAvailable() {
+      return !!(tg && tg.CloudStorage && typeof tg.CloudStorage.setItem === 'function' &&
+        typeof tg.CloudStorage.getItem === 'function' && typeof tg.CloudStorage.getItems === 'function');
+    }
+
     const SafeStore = {
+      timers: {},
+
       readLocal(key) {
         try {
           const raw = localStorage.getItem(key);
@@ -973,109 +1053,217 @@
       writeLocal(key, val) {
         try { localStorage.setItem(key, JSON.stringify(val)); } catch (err) {}
       },
-      getLocalMeta() {
+      removeLocal(key) {
+        try { localStorage.removeItem(key); } catch (err) {}
+      },
+
+      // Atnaujinimo laikas kiekvienam blokui atskirai: { program: ts, history: ts, settings: ts, active: ts }
+      getMeta() {
         const m = this.readLocal(KEYS.META);
-        return (m && typeof m === 'object') ? m : { updatedAt: 0 };
+        return (m && typeof m === 'object' && !Array.isArray(m)) ? m : {};
       },
-      bumpLocalTimestamp() {
-        const meta = { updatedAt: Date.now() };
-        this.writeLocal(KEYS.META, meta);
-        this.writeCloudSafe(CLOUD_KEYS.META, meta);
+      touch(name, ts) {
+        const m = this.getMeta();
+        m[name] = ts || Date.now();
+        this.writeLocal(KEYS.META, m);
+        return m[name];
       },
-      writeCloudSafe(cloudKey, val) {
-        try {
-          if (!tg || !tg.CloudStorage || typeof tg.CloudStorage.setItem !== 'function') return;
-          let payload = val;
-          let serialized = JSON.stringify(payload);
-          if (cloudKey === CLOUD_KEYS.HISTORY && Array.isArray(payload) && serialized.length > 3800) {
-            const trimmed = [...payload];
-            while (trimmed.length > 1 && JSON.stringify(trimmed).length > 3800) trimmed.pop();
-            serialized = JSON.stringify(trimmed);
-          }
-          if (serialized.length <= 4096) tg.CloudStorage.setItem(cloudKey, serialized);
-        } catch (err) {}
-      },
-      set(localKey, cloudKey, val) {
-        this.writeLocal(localKey, val);
-        this.writeCloudSafe(cloudKey, val);
-        this.bumpLocalTimestamp();
-      },
-      syncCloud(onDone) {
-        try {
-          if (!tg || !tg.CloudStorage || typeof tg.CloudStorage.getItems !== 'function') return;
-          tg.CloudStorage.getItems(Object.values(CLOUD_KEYS), (err, items) => {
-            if (err || !items) return;
-            let changed = false;
-            const localMeta = this.getLocalMeta();
-            let cloudUpdatedAt = 0;
-            if (items[CLOUD_KEYS.META]) {
-              try {
-                const parsedMeta = JSON.parse(items[CLOUD_KEYS.META]);
-                cloudUpdatedAt = Number(parsedMeta.updatedAt) || 0;
-              } catch (e) {}
-            }
 
-            const cloudIsNewerOrLocalEmpty = (cloudUpdatedAt >= localMeta.updatedAt) || (localMeta.updatedAt === 0);
+      // Ištrintų treniruočių ID, kad sinchronizuojant jos "neprisikeltų"
+      getTomb() {
+        const t = this.readLocal(KEYS.TOMB);
+        return Array.isArray(t) ? t.map(String) : [];
+      },
+      addTomb(ids) {
+        const t = Array.from(new Set([...this.getTomb(), ...ids.map(String)])).slice(-500);
+        this.writeLocal(KEYS.TOMB, t);
+      },
 
-            if (items[CLOUD_KEYS.PROGRAM] && cloudIsNewerOrLocalEmpty) {
-              try {
-                const p = JSON.parse(items[CLOUD_KEYS.PROGRAM]);
-                if (isValidProgramSchema(p)) { this.writeLocal(KEYS.PROGRAM, p); changed = true; }
-              } catch (e) {}
+      set(name, val) {
+        const key = KEYS[name.toUpperCase()];
+        let prev = null;
+        try { prev = localStorage.getItem(key); } catch (err) {}
+        if (prev === JSON.stringify(val)) return;
+        this.writeLocal(key, val);
+        this.touch(name);
+        this.scheduleCloud(name);
+      },
+
+      // ---- Debesis: įrašymas su debounce, kad nebūtų užklausų kiekvienam simboliui ----
+      scheduleCloud(name) {
+        if (!cloudAvailable()) return;
+        clearTimeout(this.timers[name]);
+        this.timers[name] = setTimeout(() => this.flushCloud(name), 800);
+      },
+      flushCloud(name) {
+        if (!cloudAvailable()) return;
+        const names = name ? [name] : Object.keys(this.timers);
+        names.forEach(n => {
+          if (!this.timers[n]) return;
+          clearTimeout(this.timers[n]);
+          this.timers[n] = null;
+          this.cloudPut(n);
+        });
+      },
+      cloudPut(name) {
+        try {
+          let data = this.readLocal(KEYS[name.toUpperCase()]);
+          if (data === undefined) return;
+          if (name === 'history' && Array.isArray(data)) data = data.slice(0, CLOUD_HISTORY_MAX);
+          const u = this.getMeta()[name] || this.touch(name);
+          const payload = { u, d: data };
+          if (name === 'history') payload.x = this.getTomb();
+          const s = asciiJson(payload);
+          const n = Math.max(1, Math.ceil(s.length / CLOUD_CHUNK));
+          const prefix = CLOUD_PREFIX + name;
+
+          const cleanupStale = prevNRaw => {
+            const prevN = parseInt(prevNRaw, 10) || 0;
+            if (prevN > n && typeof tg.CloudStorage.removeItems === 'function') {
+              const staleKeys = [];
+              for (let j = n; j < prevN && j < 600; j++) staleKeys.push(`${prefix}_${j}`);
+              if (staleKeys.length > 0) tg.CloudStorage.removeItems(staleKeys);
             }
-            if (items[CLOUD_KEYS.HISTORY]) {
-              try {
-                const cloudHist = JSON.parse(items[CLOUD_KEYS.HISTORY]);
-                if (Array.isArray(cloudHist)) {
-                  const localHist = this.readLocal(KEYS.HISTORY) || [];
-                  const map = new Map();
-                  [...cloudHist, ...localHist].forEach(item => { if (item && item.id) map.set(String(item.id), item); });
-                  const merged = Array.from(map.values()).sort((a, b) => Number(b.id) - Number(a.id));
-                  if (merged.length !== localHist.length) {
-                    this.writeLocal(KEYS.HISTORY, merged);
-                    changed = true;
-                  }
-                }
-              } catch (e) {}
+          };
+
+          tg.CloudStorage.getItem(`${prefix}_n`, (err, prevNRaw) => {
+            for (let i = 0; i < n; i++) {
+              tg.CloudStorage.setItem(`${prefix}_${i}`, s.slice(i * CLOUD_CHUNK, (i + 1) * CLOUD_CHUNK));
             }
-            if (items[CLOUD_KEYS.SETTINGS] && cloudIsNewerOrLocalEmpty) {
-              try {
-                const s = JSON.parse(items[CLOUD_KEYS.SETTINGS]);
-                if (s && typeof s === 'object') { this.writeLocal(KEYS.SETTINGS, { ...DEFAULT_SETTINGS, ...s }); changed = true; }
-              } catch (e) {}
-            }
-            if (items[CLOUD_KEYS.ACTIVE] && cloudIsNewerOrLocalEmpty) {
-              try {
-                const a = JSON.parse(items[CLOUD_KEYS.ACTIVE]);
-                if (a && typeof a === 'object') { this.writeLocal(KEYS.ACTIVE, a); changed = true; }
-              } catch (e) {}
-            }
-            if (changed) {
-              this.writeLocal(KEYS.META, { updatedAt: Math.max(localMeta.updatedAt, cloudUpdatedAt, Date.now()) });
-              if (typeof onDone === 'function') onDone();
-            }
+            tg.CloudStorage.setItem(`${prefix}_n`, String(n), () => {
+              if (!err) cleanupStale(prevNRaw);
+            });
           });
         } catch (err) {}
+      },
+      cloudGet(name, cb) {
+        const prefix = CLOUD_PREFIX + name;
+        tg.CloudStorage.getItem(`${prefix}_n`, (e, nRaw) => {
+          const n = parseInt(nRaw, 10);
+          if (e || !n || n < 1 || n > 600) return cb(null);
+          const ks = Array.from({ length: n }, (_, i) => `${prefix}_${i}`);
+          tg.CloudStorage.getItems(ks, (e2, o) => {
+            if (e2 || !o) return cb(null);
+            let parsed = null;
+            try { parsed = JSON.parse(ks.map(k => o[k] || '').join('')); } catch (x) {}
+            cb(parsed);
+          });
+        });
+      },
+
+      syncCloud(onDone) {
+        try {
+          if (!cloudAvailable()) return;
+          const results = {};
+          let pending = STORE_NAMES.length + 1;
+          const finish = () => { if (--pending === 0) this.applyCloud(results, onDone); };
+          STORE_NAMES.forEach(n => this.cloudGet(n, r => { results[n] = r; finish(); }));
+          // senieji v4 debesies raktai (tik kaip atsarginis šaltinis)
+          tg.CloudStorage.getItems([LEGACY_KEYS.PROGRAM, LEGACY_KEYS.HISTORY], (err, items) => {
+            results.legacy = (!err && items) ? items : null;
+            finish();
+          });
+        } catch (err) {}
+      },
+
+      applyCloud(r, onDone) {
+        let changed = false;
+        const readKey = name => this.readLocal(KEYS[name.toUpperCase()]);
+
+        const lg = r.legacy;
+        if (lg) {
+          try {
+            if (!r.program && lg[LEGACY_KEYS.PROGRAM] && readKey('program') === undefined) {
+              const p = JSON.parse(lg[LEGACY_KEYS.PROGRAM]);
+              if (isValidProgramSchema(p)) r.program = { u: 1, d: p };
+            }
+          } catch (e) {}
+          try {
+            if (!r.history && lg[LEGACY_KEYS.HISTORY]) {
+              const h = JSON.parse(lg[LEGACY_KEYS.HISTORY]);
+              if (Array.isArray(h)) r.history = { u: 0, d: h, x: [] };
+            }
+          } catch (e) {}
+        }
+
+        // program / settings / active: imam debesies versiją tik jei ji GRIEŽTAI naujesnė už vietinę
+        const validators = {
+          program: d => (isValidProgramSchema(d) ? d : null),
+          settings: d => ((d && typeof d === 'object' && !Array.isArray(d)) ? { ...DEFAULT_SETTINGS, ...d } : null),
+          active: d => ((d && typeof d === 'object' && !Array.isArray(d)) ? d : null)
+        };
+        Object.keys(validators).forEach(name => {
+          const c = r[name];
+          const mu = Number(this.getMeta()[name]) || 0;
+          if (!c || typeof c !== 'object' || !('d' in c)) {
+            if (readKey(name) !== undefined) this.scheduleCloud(name);
+            return;
+          }
+          const cu = Number(c.u) || 0;
+          if (cu > mu) {
+            const val = validators[name](c.d);
+            if (val !== null) {
+              this.writeLocal(KEYS[name.toUpperCase()], val);
+              this.touch(name, cu);
+              changed = true;
+            }
+          } else if (mu > cu) {
+            this.scheduleCloud(name);
+          }
+        });
+
+        // istorija: sujungiam pagal id, atmetam ištrintas (tombstone), viską išvalom per sanitizeSession
+        const ch = r.history;
+        const localHist = this.readLocal(KEYS.HISTORY);
+        const lh = Array.isArray(localHist) ? localHist : [];
+        if (ch && Array.isArray(ch.d)) {
+          const localTomb = this.getTomb();
+          const cloudTombArr = Array.isArray(ch.x) ? ch.x.map(String) : [];
+          const tomb = new Set([...localTomb, ...cloudTombArr]);
+          const map = new Map();
+          [...ch.d, ...lh].forEach(item => {
+            const s = sanitizeSession(item);
+            if (s && s.id && !tomb.has(String(s.id))) map.set(String(s.id), s);
+          });
+          const merged = Array.from(map.values()).sort((a, b) => b.id - a.id);
+          const sameAsLocal = merged.length === lh.length && merged.every((s, i) => String(s.id) === String(lh[i] && lh[i].id));
+          if (tomb.size !== localTomb.length) this.writeLocal(KEYS.TOMB, Array.from(tomb).slice(-500));
+          if (!sameAsLocal) { this.writeLocal(KEYS.HISTORY, merged); changed = true; }
+
+          const cloudIds = new Set(ch.d.map(i => String(i && i.id)));
+          const cloudTomb = new Set(cloudTombArr);
+          const needUpload = Number(ch.u) === 0
+            || merged.slice(0, CLOUD_HISTORY_MAX).some(s => !cloudIds.has(String(s.id)))
+            || Array.from(tomb).some(t => !cloudTomb.has(t));
+          if (needUpload) this.scheduleCloud('history');
+        } else if (lh.length > 0) {
+          this.scheduleCloud('history');
+        }
+
+        if (changed && typeof onDone === 'function') onDone();
       }
     };
 
+    // Prieš uždarant/slepiant programą – iškart išsiunčiam laukiančius debesies įrašus
+    document.addEventListener('visibilitychange', () => { if (document.hidden) SafeStore.flushCloud(); });
+    window.addEventListener('pagehide', () => SafeStore.flushCloud());
+
     function migrateLegacyStorageIfNeeded() {
-      if (SafeStore.readLocal(KEYS.PROGRAM) === undefined) {
-        const legProg = SafeStore.readLocal(LEGACY_KEYS.PROGRAM) || SafeStore.readLocal(`gympro_v4_${tgUser.id}_program`);
-        if (legProg !== undefined) SafeStore.writeLocal(KEYS.PROGRAM, legProg);
-      }
-      if (SafeStore.readLocal(KEYS.HISTORY) === undefined) {
-        const legHist = SafeStore.readLocal(LEGACY_KEYS.HISTORY) || SafeStore.readLocal(`gympro_v4_${tgUser.id}_history`);
-        if (Array.isArray(legHist)) SafeStore.writeLocal(KEYS.HISTORY, legHist);
-      }
-      if (SafeStore.readLocal(KEYS.SETTINGS) === undefined) {
-        const legSet = SafeStore.readLocal(LEGACY_KEYS.SETTINGS);
-        if (legSet && typeof legSet === 'object') SafeStore.writeLocal(KEYS.SETTINGS, legSet);
-      }
-      if (SafeStore.readLocal(KEYS.ACTIVE) === undefined) {
-        const legAct = SafeStore.readLocal(LEGACY_KEYS.ACTIVE);
-        if (legAct && typeof legAct === 'object') SafeStore.writeLocal(KEYS.ACTIVE, legAct);
-      }
+      const specs = [
+        ['PROGRAM', 'program', v => v !== undefined],
+        ['HISTORY', 'history', v => Array.isArray(v)],
+        ['SETTINGS', 'settings', v => !!v && typeof v === 'object'],
+        ['ACTIVE', 'active', v => !!v && typeof v === 'object']
+      ];
+      specs.forEach(([K, name, ok]) => {
+        if (SafeStore.readLocal(KEYS[K]) !== undefined) return;
+        const shared = SafeStore.readLocal(LEGACY_KEYS[K]);
+        const perUser = SafeStore.readLocal(`gympro_v4_${tgUser.id}_${name}`);
+        const val = ok(shared) ? shared : (ok(perUser) ? perUser : undefined);
+        if (val === undefined) return;
+        SafeStore.writeLocal(KEYS[K], val);
+        if (ok(shared) && SafeStore.readLocal(KEYS[K]) !== undefined) SafeStore.removeLocal(LEGACY_KEYS[K]);
+      });
     }
 
     migrateLegacyStorageIfNeeded();
@@ -1086,7 +1274,8 @@
 
       let rawHist = SafeStore.readLocal(KEYS.HISTORY);
       if (!Array.isArray(rawHist)) rawHist = [];
-      rawHist = rawHist.filter(item => item && typeof item === 'object' && Array.isArray(item.exercises));
+      const cleanHist = rawHist.map(sanitizeSession).filter(Boolean);
+      if (backfillExerciseIds(loadedProgram, cleanHist)) SafeStore.writeLocal(KEYS.HISTORY, cleanHist);
 
       let rawSettings = SafeStore.readLocal(KEYS.SETTINGS);
       rawSettings = (!rawSettings || typeof rawSettings !== 'object')
@@ -1098,15 +1287,25 @@
         rawActive = { activeDayIdx: 0, workoutStartTime: null, restEndTime: null, draft: {} };
       }
 
+      // Pamirštos sesijos laikmatis (>8 val.) nuresetinamas – pirmas ✓ jį paleis iš naujo
+      let startTs = typeof rawActive.workoutStartTime === 'number' ? rawActive.workoutStartTime : null;
+      if (startTs && Date.now() - startTs > MAX_STALE_SESSION_MS) startTs = null;
+
+      // Juodraščių valymas: išmetam ištrintų pratimų likučius (jie didina ACTIVE dydį)
+      const draft = (rawActive.draft && typeof rawActive.draft === 'object') ? rawActive.draft : {};
+      const validIds = new Set();
+      loadedProgram.forEach(d => d.exercises.forEach(ex => validIds.add(ex.id)));
+      if (validIds.size > 0) Object.keys(draft).forEach(k => { if (!validIds.has(k)) delete draft[k]; });
+
       return {
         program: loadedProgram,
-        history: rawHist,
+        history: cleanHist,
         settings: rawSettings,
         active: {
           activeDayIdx: (rawActive.activeDayIdx >= 0 && rawActive.activeDayIdx < loadedProgram.length) ? rawActive.activeDayIdx : 0,
-          workoutStartTime: typeof rawActive.workoutStartTime === 'number' ? rawActive.workoutStartTime : null,
+          workoutStartTime: startTs,
           restEndTime: typeof rawActive.restEndTime === 'number' ? rawActive.restEndTime : null,
-          draft: (rawActive.draft && typeof rawActive.draft === 'object') ? rawActive.draft : {}
+          draft
         }
       };
     }
@@ -1117,10 +1316,10 @@
     let settings = state.settings;
     let activeState = state.active;
 
-    function persistActiveState() { SafeStore.set(KEYS.ACTIVE, CLOUD_KEYS.ACTIVE, activeState); }
-    function persistSettings() { SafeStore.set(KEYS.SETTINGS, CLOUD_KEYS.SETTINGS, settings); }
-    function persistHistory() { SafeStore.set(KEYS.HISTORY, CLOUD_KEYS.HISTORY, history); }
-    function persistProgram() { SafeStore.set(KEYS.PROGRAM, CLOUD_KEYS.PROGRAM, program); }
+    function persistActiveState() { SafeStore.set('active', activeState); }
+    function persistSettings() { SafeStore.set('settings', settings); }
+    function persistHistory() { SafeStore.set('history', history); }
+    function persistProgram() { SafeStore.set('program', program); }
 
     function getHeaderGreetingText() {
       const cg = (settings.customGreeting || '').trim();
@@ -1268,11 +1467,11 @@
     }
 
     const VALID_THEMES = ['dark-neon', 'carbon-gray', 'clean-light', 'telegram-theme'];
-    function applyTheme(themeKey) {
+    function applyTheme(themeKey, persist = true) {
       const valid = VALID_THEMES.includes(themeKey) ? themeKey : 'dark-neon';
       settings.theme = valid;
       document.documentElement.setAttribute('data-theme', valid);
-      persistSettings();
+      if (persist) persistSettings();
       document.querySelectorAll('.theme-card').forEach(btn => {
         const active = btn.dataset.themeVal === valid;
         btn.className = `theme-card p-3 rounded-xl border text-left transition active:scale-95 ${
@@ -1281,11 +1480,11 @@
       });
     }
 
-    function applyDensity(densityVal) {
+    function applyDensity(densityVal, persist = true) {
       const valid = densityVal === 'compact' ? 'compact' : 'default';
       settings.density = valid;
       document.documentElement.setAttribute('data-density', valid);
-      persistSettings();
+      if (persist) persistSettings();
       document.querySelectorAll('.density-btn').forEach(btn => {
         const active = btn.dataset.densityVal === valid;
         btn.className = `density-btn min-h-[44px] p-2.5 rounded-xl border text-left transition active:scale-95 ${
@@ -1294,11 +1493,11 @@
       });
     }
 
-    function applyScale(scaleVal) {
+    function applyScale(scaleVal, persist = true) {
       const valid = ['sm', 'md', 'lg'].includes(scaleVal) ? scaleVal : 'md';
       settings.scale = valid;
       document.documentElement.setAttribute('data-scale', valid);
-      persistSettings();
+      if (persist) persistSettings();
       document.querySelectorAll('.scale-btn').forEach(btn => {
         const active = btn.dataset.scaleVal === valid;
         btn.className = `scale-btn min-h-[44px] p-2 rounded-xl border text-center transition active:scale-95 ${
@@ -1307,9 +1506,10 @@
       });
     }
 
-    applyTheme(settings.theme);
-    applyDensity(settings.density);
-    applyScale(settings.scale);
+    // Paleidžiant nieko nerašom (persist=false), kad numatytieji nustatymai neperrašytų debesies kopijos
+    applyTheme(settings.theme, false);
+    applyDensity(settings.density, false);
+    applyScale(settings.scale, false);
     syncWakeLock();
 
     let toastTimeout = null;
@@ -1360,21 +1560,30 @@
     }
 
     let confirmCallback = null;
-    function showConfirm(title, text, onOk) {
+    let confirmCancelCallback = null;
+    function showConfirm(title, text, onOk, onCancel, labels) {
       document.getElementById('confirm-title').textContent = title;
       document.getElementById('confirm-text').textContent = text;
+      document.getElementById('confirm-ok').textContent = (labels && labels.ok) || 'Patvirtinti';
+      document.getElementById('confirm-cancel').textContent = (labels && labels.cancel) || 'Atšaukti';
       confirmCallback = onOk;
+      confirmCancelCallback = typeof onCancel === 'function' ? onCancel : null;
       document.getElementById('confirm-modal').classList.remove('hidden');
     }
 
     document.getElementById('confirm-cancel').addEventListener('click', () => {
       document.getElementById('confirm-modal').classList.add('hidden');
+      const cb = confirmCancelCallback;
       confirmCallback = null;
+      confirmCancelCallback = null;
+      if (typeof cb === 'function') cb();
     });
     document.getElementById('confirm-ok').addEventListener('click', () => {
       document.getElementById('confirm-modal').classList.add('hidden');
-      if (typeof confirmCallback === 'function') confirmCallback();
+      const cb = confirmCallback;
       confirmCallback = null;
+      confirmCancelCallback = null;
+      if (typeof cb === 'function') cb();
     });
 
     function formatClock(ts) {
@@ -1464,14 +1673,14 @@
         if (ex.type === 'strength') {
           const unit = normalizeUnit(ex.unit);
           const d = ensureDraftForExercise(ex);
-          const lastIdx = d.sets.length - 1;
-          d.sets.forEach((s, idx) => {
+          d.sets.forEach(s => {
             if (!s.done) return;
             volKg += toKg(s.w, unit) * (parseInt(s.r, 10) || 0);
-            if (ex.hasDropSet && idx === lastIdx && d.dropSet) {
-              volKg += toKg(d.dropSet.w, unit) * (parseInt(d.dropSet.r, 10) || 0);
-            }
           });
+          // drop-set skaičiuojamas, jei atlikta bent viena serija (nebūtina pažymėti būtent paskutinės)
+          if (ex.hasDropSet && d.dropSet && d.sets.some(s => s.done)) {
+            volKg += toKg(d.dropSet.w, unit) * (parseInt(d.dropSet.r, 10) || 0);
+          }
         }
       });
       return Math.round(volKg);
@@ -1511,8 +1720,10 @@
         } else {
           timerDisplay.textContent = formatSec(remainingMs / 1000);
           if (settings.showRestTimer) {
-            timerWidget.classList.remove('hidden');
-            applySavedTimerPosition();
+            if (timerWidget.classList.contains('hidden')) {
+              timerWidget.classList.remove('hidden');
+              applySavedTimerPosition();
+            }
           } else {
             timerWidget.classList.add('hidden');
           }
@@ -1543,6 +1754,8 @@
       if (!document.hidden) { syncTimersWithRealClock(); syncWakeLock(); applyTelegramSafeAreas(); }
     });
     window.addEventListener('focus', () => { syncTimersWithRealClock(); applyTelegramSafeAreas(); });
+    window.addEventListener('resize', () => { if (!timerWidget.classList.contains('hidden')) applySavedTimerPosition(); });
+    document.addEventListener('pointerdown', () => { if (audioCtx && audioCtx.state !== 'running') unlockAudioContext(); }, { passive: true });
 
     document.getElementById('timer-minus').addEventListener('click', () => {
       if (!activeState.restEndTime) return;
@@ -1593,9 +1806,20 @@
       window.addEventListener('mouseup', onDragEnd);
     })();
 
+    // Kol vyksta treniruotė – Telegram paprašo patvirtinimo prieš uždarant programą
+    function syncClosingConfirmation() {
+      try {
+        if (!tg) return;
+        const active = Boolean(activeState && activeState.workoutStartTime);
+        if (active && typeof tg.enableClosingConfirmation === 'function') tg.enableClosingConfirmation();
+        else if (!active && typeof tg.disableClosingConfirmation === 'function') tg.disableClosingConfirmation();
+      } catch (e) {}
+    }
+
     function renderSessionBanner() {
       const headerCtrl = document.getElementById('session-header-control');
       const banner = document.getElementById('active-session-banner');
+      syncClosingConfirmation();
 
       if (!activeState.workoutStartTime) {
         banner.classList.add('hidden');
@@ -1778,7 +2002,7 @@
                   <span class="text-xs font-extrabold ${sObj.done ? 'text-emerald-400' : ''}">Ser. ${sIdx + 1}</span>
                   ${isLastDrop ? '<span class="block text-[9px] font-extrabold text-red-400">+ DROP</span>' : ''}
                 </div>
-                <input type="number" inputmode="decimal" step="0.5" placeholder="${exUnit}" value="${escapeHtml(sObj.w)}"
+                <input type="text" inputmode="decimal" placeholder="${exUnit}" value="${escapeHtml(sObj.w)}"
                   data-ex-id="${escapeHtml(ex.id)}" data-s-idx="${sIdx}" data-field="w"
                   class="set-val-input w-full h-11 rounded-lg bg-app-input border border-app-border focus:border-app-accent focus:outline-none text-center text-sm font-extrabold" />
                 <input type="number" inputmode="numeric" placeholder="pak." value="${escapeHtml(sObj.r)}"
@@ -1792,14 +2016,15 @@
             `;
             if (isLastDrop) {
               const dropObj = exDraft.dropSet || { w: '', r: '' };
-              const suggestedDrop = sObj.w ? String(Math.round(parseFloat(sObj.w) * 0.7 * 2) / 2) : exUnit;
+              const parsedSetW = parseDecimalWeight(sObj.w);
+              const suggestedDrop = parsedSetW > 0 ? String(Math.round(parsedSetW * 0.7 * 2) / 2) : exUnit;
               html += `
                 <div class="ex-set-row grid grid-cols-[64px_1fr_1fr_44px] gap-2 items-center p-1.5 rounded-xl bg-red-500/10 border border-red-500/35">
                   <div class="pl-1">
                     <span class="text-[10px] font-black text-red-400 block leading-tight">DROP-SET</span>
                     <span class="text-[9px] text-red-400/80">-30% max</span>
                   </div>
-                  <input type="number" inputmode="decimal" step="0.5" placeholder="${escapeHtml(suggestedDrop)}" value="${escapeHtml(dropObj.w)}"
+                  <input type="text" inputmode="decimal" placeholder="${escapeHtml(suggestedDrop)}" value="${escapeHtml(dropObj.w)}"
                     data-ex-id="${escapeHtml(ex.id)}" data-drop-field="w"
                     class="drop-val-input w-full h-10 rounded-lg bg-app-input border border-red-500/35 focus:border-red-400 focus:outline-none text-center text-sm font-extrabold text-red-400" />
                   <input type="number" inputmode="numeric" placeholder="max" value="${escapeHtml(dropObj.r)}"
@@ -1822,11 +2047,12 @@
     }
 
     function calcEpley1RM(weight, reps) {
-      const w = parseFloat(weight) || 0;
+      const w = parseDecimalWeight(weight);
       const r = parseInt(reps, 10) || 0;
       if (w <= 0 || r <= 0) return 0;
       if (r === 1) return Math.round(w * 10) / 10;
-      return Math.round(w * (1 + r / 30) * 10) / 10;
+      // Epley virš ~12 pakartojimų nebepatikima ir pervertina – ribojam, kad nebūtų netikrų 1RM rekordų
+      return Math.round(w * (1 + Math.min(r, 12) / 30) * 10) / 10;
     }
 
     function getPreviousBests(exerciseId, exerciseName, targetUnit = 'kg') {
@@ -1838,7 +2064,7 @@
           if (isMatch && Array.isArray(ex.sets)) {
             const exUnit = normalizeUnit(ex.unit);
             ex.sets.forEach(s => {
-              const rawW = parseFloat(s.w) || 0;
+              const rawW = parseDecimalWeight(s.w);
               const reps = parseInt(s.r, 10) || 0;
               if (rawW <= 0) return;
               const wInKg = toKg(rawW, exUnit);
@@ -1884,30 +2110,29 @@
           const validSets = [];
           let exMaxW = 0;
           let exMax1RM = 0;
-          const lastIdx = d.sets.length - 1;
-
-          d.sets.forEach((s, idx) => {
+          d.sets.forEach(s => {
             if (s.done) {
-              const wVal = s.w !== '' ? String(s.w) : '0';
+              const wVal = s.w !== '' ? sanitizeDecimalInput(s.w) : '0';
               const rVal = s.r !== '' ? String(s.r) : '0';
               validSets.push({ w: wVal, r: rVal, drop: false });
-              const wNum = parseFloat(wVal) || 0;
+              const wNum = parseDecimalWeight(wVal);
               const rNum = parseInt(rVal, 10) || 0;
               if (wNum > exMaxW) exMaxW = wNum;
               const est1RM = calcEpley1RM(wNum, rNum);
               if (est1RM > exMax1RM) exMax1RM = est1RM;
               totalVolumeKg += toKg(wNum, exUnit) * rNum;
               totalSetsCompleted += 1;
-
-              if (ex.hasDropSet && idx === lastIdx && d.dropSet && (d.dropSet.w !== '' || d.dropSet.r !== '')) {
-                const dw = String(d.dropSet.w || '0');
-                const dr = String(d.dropSet.r || '0');
-                validSets.push({ w: dw, r: dr, drop: true });
-                totalVolumeKg += toKg(dw, exUnit) * (parseInt(dr, 10) || 0);
-                totalSetsCompleted += 1;
-              }
             }
           });
+
+          // drop-set įrašomas, jei atlikta bent viena serija ir jo laukai užpildyti
+          if (ex.hasDropSet && d.dropSet && validSets.length > 0 && (d.dropSet.w !== '' || d.dropSet.r !== '')) {
+            const dw = d.dropSet.w !== '' ? sanitizeDecimalInput(d.dropSet.w) : '0';
+            const dr = String(d.dropSet.r || '0');
+            validSets.push({ w: dw, r: dr, drop: true });
+            totalVolumeKg += toKg(dw, exUnit) * (parseInt(dr, 10) || 0);
+            totalSetsCompleted += 1;
+          }
 
           if (validSets.length > 0) {
             const prevBests = getPreviousBests(ex.id, ex.name, exUnit);
@@ -1934,7 +2159,6 @@
       };
 
       history.unshift(sessionRecord);
-      if (history.length > 80) history = history.slice(0, 80);
       persistHistory();
 
       activeState.workoutStartTime = null;
@@ -2019,7 +2243,7 @@
             const recUnit = normalizeUnit(ex.unit);
             let maxW = 0, best1RM = 0, exTonnageKg = 0;
             ex.sets.forEach(s => {
-              const rawW = parseFloat(s.w) || 0;
+              const rawW = parseDecimalWeight(s.w);
               const r = parseInt(s.r, 10) || 0;
               const wKg = toKg(rawW, recUnit);
               const wDisplay = displayUnit === 'lb' ? Math.round((wKg / LB_TO_KG) * 10) / 10 : Math.round(wKg * 10) / 10;
@@ -2179,8 +2403,13 @@
       document.getElementById('png-preview-modal').classList.remove('hidden');
     }
 
-    document.getElementById('close-png-modal').addEventListener('click', () => document.getElementById('png-preview-modal').classList.add('hidden'));
-    document.getElementById('close-png-modal-bottom').addEventListener('click', () => document.getElementById('png-preview-modal').classList.add('hidden'));
+    function closePngModal() {
+      document.getElementById('png-preview-modal').classList.add('hidden');
+      currentPngDataUrl = '';
+      document.getElementById('png-preview-img').removeAttribute('src');
+    }
+    document.getElementById('close-png-modal').addEventListener('click', closePngModal);
+    document.getElementById('close-png-modal-bottom').addEventListener('click', closePngModal);
 
     document.getElementById('share-png-btn').addEventListener('click', async () => {
       if (!currentPngDataUrl) return;
@@ -2422,13 +2651,31 @@
         note: document.getElementById('ex-form-note').value.trim()
       };
 
-      if (eIdx >= 0) program[dIdx].exercises[eIdx] = newExObj;
-      else program[dIdx].exercises.push(newExObj);
+      const commit = obj => {
+        if (eIdx >= 0) program[dIdx].exercises[eIdx] = obj;
+        else program[dIdx].exercises.push(obj);
+        exModal.classList.add('hidden');
+        saveProgramChanges();
+        haptic('success');
+        showToast('Pratimas išsaugotas!');
+      };
 
-      exModal.classList.add('hidden');
-      saveProgramChanges();
-      haptic('success');
-      showToast('Pratimas išsaugotas!');
+      // Pervadinus pratimą klausiame: tas pats pratimas (istorija lieka) ar visai kitas (nauja istorija)
+      const oldEx = eIdx >= 0 ? program[dIdx].exercises[eIdx] : null;
+      const renamed = oldEx && oldEx.type === 'strength' && !isCardio &&
+        oldEx.name.trim().toLowerCase() !== newExObj.name.toLowerCase();
+      if (renamed) {
+        exModal.classList.add('hidden');
+        showConfirm(
+          'Pervadintas pratimas',
+          `„${oldEx.name}“ → „${newExObj.name}“\n\nAr tai TAS PATS pratimas (pataisyta rašyba)?\n• Taip – istorija ir rekordai išlieka.\n• Ne – sukuriamas naujas pratimas su tuščia istorija.`,
+          () => commit(newExObj),
+          () => commit({ ...newExObj, id: `ex_${Date.now()}` }),
+          { ok: 'Taip, tas pats', cancel: 'Ne, naujas' }
+        );
+      } else {
+        commit(newExObj);
+      }
     });
 
     const dayModal = document.getElementById('day-modal');
@@ -2568,6 +2815,7 @@
       if (!Array.isArray(history) || history.length === 0) return;
       haptic('medium');
       showConfirm('Išvalyti visą istoriją?', `Ar tikrai norite negrįžtamai ištrinti visus (${history.length}) treniruočių įrašus?`, () => {
+        SafeStore.addTomb(history.map(s => s.id));
         history = [];
         persistHistory();
         renderHistoryView();
@@ -2587,6 +2835,7 @@
         if (!sess) return;
         haptic('medium');
         showConfirm('Ištrinti treniruotę?', `Ar tikrai norite pašalinti „${sess.dayTitle}“ (${sess.date}) iš istorijos?`, () => {
+          SafeStore.addTomb([sess.id]);
           history.splice(idx, 1);
           persistHistory();
           renderHistoryView();
@@ -2737,13 +2986,14 @@
           program = normalizeProgram(parsed.program);
           persistProgram();
           if (Array.isArray(parsed.history)) {
-            history = parsed.history.filter(item => item && typeof item === 'object' && Array.isArray(item.exercises));
+            history = parsed.history.map(sanitizeSession).filter(Boolean).sort((a, b) => b.id - a.id);
+            backfillExerciseIds(program, history);
             persistHistory();
           }
           if (parsed.settings && typeof parsed.settings === 'object') {
             settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
             persistSettings();
-            applyTheme(settings.theme); applyDensity(settings.density); applyScale(settings.scale);
+            applyTheme(settings.theme, false); applyDensity(settings.density, false); applyScale(settings.scale, false);
             customGreetingInput.value = settings.customGreeting || '';
             updateHeaderGreetingUI(); syncWakeLock();
           }
@@ -2779,14 +3029,27 @@
 
     document.getElementById('workout-container').addEventListener('input', e => {
       const t = e.target;
+      if (t.type === 'number' && t.value !== '') {
+        const n = Number(t.value);
+        if (n < 0) t.value = '';
+        else if (n > 5000) t.value = '5000';
+      }
       if (t.classList.contains('set-val-input')) {
         const { exId, sIdx, field } = t.dataset;
+        if (field === 'w') {
+          const clean = sanitizeDecimalInput(t.value);
+          if (t.value !== clean) t.value = clean;
+        }
         if (activeState.draft[exId] && activeState.draft[exId].sets && activeState.draft[exId].sets[Number(sIdx)]) {
           activeState.draft[exId].sets[Number(sIdx)][field] = t.value;
           persistActiveState(); updateWorkoutProgress();
         }
       } else if (t.classList.contains('drop-val-input')) {
         const { exId, dropField } = t.dataset;
+        if (dropField === 'w') {
+          const clean = sanitizeDecimalInput(t.value);
+          if (t.value !== clean) t.value = clean;
+        }
         if (activeState.draft[exId] && activeState.draft[exId].dropSet) {
           activeState.draft[exId].dropSet[dropField] = t.value;
           persistActiveState(); updateWorkoutProgress();
@@ -2924,7 +3187,7 @@
 
     setTimeout(() => checkForAppUpdate(false), 1500);
 
-    SafeStore.syncCloud(() => {
+    function applySyncedState() {
       try {
         const refreshed = loadInitialState();
         program = refreshed.program; history = refreshed.history; settings = refreshed.settings; activeState = refreshed.active;
@@ -2934,11 +3197,16 @@
         soundToggle.checked = Boolean(settings.soundEnabled);
         vibrationToggle.checked = Boolean(settings.vibrationEnabled);
         wakeLockToggle.checked = Boolean(settings.wakeLockEnabled);
-        applyTheme(settings.theme); applyDensity(settings.density); applyScale(settings.scale);
-        syncWakeLock(); renderWorkoutView(); syncTimersWithRealClock();
+        applyTheme(settings.theme, false); applyDensity(settings.density, false); applyScale(settings.scale, false);
+        syncWakeLock(); renderWorkoutView(); renderHistoryView(); renderProgressView(); syncTimersWithRealClock();
         if (hasUserStartedProgram()) closeWelcomeModal();
       } catch (err) {}
-    });
+    }
+
+    SafeStore.syncCloud(applySyncedState);
+    try {
+      if (tg && typeof tg.onEvent === 'function') tg.onEvent('activated', () => SafeStore.syncCloud(applySyncedState));
+    } catch (err) {}
   </script>
 </body>
 </html>
