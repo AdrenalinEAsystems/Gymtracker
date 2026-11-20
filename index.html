@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>GymPro Tracker V1.14 — Telegram Mini App</title>
+  <title>GymPro Tracker V1.15 — Telegram Mini App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -99,8 +99,13 @@
     html[data-density="compact"] .ex-last-banner { margin-top: 0.4rem !important; padding: 0.32rem 0.55rem !important; }
     html[data-density="compact"] .ex-note-text { margin-top: 0.2rem !important; line-height: 1.3 !important; }
 
-    :root { --safe-top-total: env(safe-area-inset-top, 0px); --safe-bottom-total: env(safe-area-inset-bottom, 0px); }
-    .view-section > header { padding-top: calc(0.75rem + var(--safe-top-total)); }
+    :root {
+      --safe-top-sys: var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px));
+      --safe-top-content: var(--tg-content-safe-area-inset-top, 0px);
+      --safe-top-total: calc(var(--safe-top-sys) + var(--safe-top-content));
+      --safe-bottom-total: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+    }
+    .view-section > header { padding-top: calc(0.75rem + var(--safe-top-total)) !important; }
     nav.fixed { height: calc(64px + var(--safe-bottom-total)); padding-bottom: var(--safe-bottom-total); }
     #view-workout > div.fixed { bottom: calc(64px + var(--safe-bottom-total)); }
     #toast { top: calc(1rem + var(--safe-top-total)); }
@@ -459,7 +464,7 @@
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-extrabold">GymPro Tracker</span>
-                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.14</span>
+                <span id="app-version-badge" class="px-2 py-0.5 rounded-md bg-app-accentSoft text-app-accent text-[11px] font-black">v1.15</span>
               </div>
               <p id="version-check-status" class="text-[11px] text-app-muted mt-0.5">Automatinis atnaujinimų tikrinimas įjungtas</p>
             </div>
@@ -759,7 +764,7 @@
               <h3 class="text-base font-black leading-tight">Išleista nauja versija!</h3>
             </div>
           </div>
-          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.14</span>
+          <span id="update-new-version-badge" class="px-2.5 py-1 rounded-lg bg-app-accent text-app-accentText text-xs font-black shrink-0">v1.15</span>
         </div>
         <div class="p-3 rounded-xl bg-app-elevated border border-app-border space-y-1">
           <div class="text-[10px] font-extrabold uppercase text-app-muted">Kas naujo:</div>
@@ -786,8 +791,8 @@
   <script>
     'use strict';
 
-    const APP_VERSION = '1.14';
-    // RELEASE_NOTES: Sutvarkytas pradinis paleidimas ir pridėtas klaidų detektorius, jei failas įkeliamas nepilnai.
+    const APP_VERSION = '1.15';
+    // RELEASE_NOTES: Sutvarkytas viršutinės juostos atitraukimas (fullscreen / darbalaukio nuoroda), į istoriją įtraukiamos tik pažymėtos serijos, pridėtas 1RM rekordų sekimas, pratimų ID susiejimas ir saugesnė sinchronizacija.
 
     function switchTab(tabName) {
       document.querySelectorAll('.view-section').forEach(sec => sec.classList.add('hidden'));
@@ -850,10 +855,36 @@
     const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
     let tgUser = { id: 'guest', firstName: '' };
 
+    function applyTelegramSafeAreas() {
+      try {
+        if (!tg) return;
+        const sysTop = (tg.safeAreaInset && typeof tg.safeAreaInset.top === 'number') ? tg.safeAreaInset.top : 0;
+        const contentTop = (tg.contentSafeAreaInset && typeof tg.contentSafeAreaInset.top === 'number') ? tg.contentSafeAreaInset.top : 0;
+        const sysBottom = (tg.safeAreaInset && typeof tg.safeAreaInset.bottom === 'number') ? tg.safeAreaInset.bottom : 0;
+
+        if (sysTop > 0) document.documentElement.style.setProperty('--safe-top-sys', `${sysTop}px`);
+        if (contentTop > 0) {
+          document.documentElement.style.setProperty('--safe-top-content', `${contentTop}px`);
+        } else if (tg.isFullscreen) {
+          document.documentElement.style.setProperty('--safe-top-content', '46px');
+        }
+        if (sysBottom > 0) document.documentElement.style.setProperty('--safe-bottom-total', `${sysBottom}px`);
+      } catch (e) {}
+    }
+
     try {
       if (tg) {
         if (typeof tg.ready === 'function') tg.ready();
         if (typeof tg.expand === 'function') tg.expand();
+        if (tg.isFullscreen && typeof tg.exitFullscreen === 'function') {
+          try { tg.exitFullscreen(); } catch (err) {}
+        }
+        applyTelegramSafeAreas();
+        if (typeof tg.onEvent === 'function') {
+          tg.onEvent('safeAreaChanged', applyTelegramSafeAreas);
+          tg.onEvent('contentSafeAreaChanged', applyTelegramSafeAreas);
+          tg.onEvent('fullscreenChanged', applyTelegramSafeAreas);
+        }
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
           tgUser = {
             id: String(tg.initDataUnsafe.user.id || 'guest'),
@@ -863,14 +894,29 @@
       }
     } catch (e) {}
 
+    const USER_NS = `gympro_v5_${tgUser.id}_`;
     const KEYS = {
+      PROGRAM: `${USER_NS}program`,
+      HISTORY: `${USER_NS}history`,
+      SETTINGS: `${USER_NS}settings`,
+      ACTIVE: `${USER_NS}active`,
+      META: `${USER_NS}meta`
+    };
+
+    const CLOUD_KEYS = {
+      PROGRAM: 'gympro_v4_program',
+      HISTORY: 'gympro_v4_history',
+      SETTINGS: 'gympro_v4_settings',
+      ACTIVE: 'gympro_v4_active',
+      META: 'gympro_v5_meta'
+    };
+
+    const LEGACY_KEYS = {
       PROGRAM: 'gympro_v4_program',
       HISTORY: 'gympro_v4_history',
       SETTINGS: 'gympro_v4_settings',
       ACTIVE: 'gympro_v4_active'
     };
-
-    const LEGACY_USER_PREFIX = `gympro_v4_${tgUser.id}_`;
 
     function isValidProgramSchema(data) {
       if (!Array.isArray(data) || data.length === 0) return false;
@@ -922,76 +968,119 @@
       writeLocal(key, val) {
         try { localStorage.setItem(key, JSON.stringify(val)); } catch (err) {}
       },
-      writeCloudSafe(key, val) {
+      getLocalMeta() {
+        const m = this.readLocal(KEYS.META);
+        return (m && typeof m === 'object') ? m : { updatedAt: 0 };
+      },
+      bumpLocalTimestamp() {
+        const meta = { updatedAt: Date.now() };
+        this.writeLocal(KEYS.META, meta);
+        this.writeCloudSafe(CLOUD_KEYS.META, meta);
+      },
+      writeCloudSafe(cloudKey, val) {
         try {
           if (!tg || !tg.CloudStorage || typeof tg.CloudStorage.setItem !== 'function') return;
           let payload = val;
           let serialized = JSON.stringify(payload);
-          if (key === KEYS.HISTORY && Array.isArray(payload) && serialized.length > 3800) {
+          if (cloudKey === CLOUD_KEYS.HISTORY && Array.isArray(payload) && serialized.length > 3800) {
             const trimmed = [...payload];
             while (trimmed.length > 1 && JSON.stringify(trimmed).length > 3800) trimmed.pop();
             serialized = JSON.stringify(trimmed);
           }
-          if (serialized.length <= 4096) tg.CloudStorage.setItem(key, serialized);
+          if (serialized.length <= 4096) tg.CloudStorage.setItem(cloudKey, serialized);
         } catch (err) {}
       },
-      set(key, val) {
-        this.writeLocal(key, val);
-        this.writeCloudSafe(key, val);
+      set(localKey, cloudKey, val) {
+        this.writeLocal(localKey, val);
+        this.writeCloudSafe(cloudKey, val);
+        this.bumpLocalTimestamp();
       },
       syncCloud(onDone) {
         try {
           if (!tg || !tg.CloudStorage || typeof tg.CloudStorage.getItems !== 'function') return;
-          tg.CloudStorage.getItems(Object.values(KEYS), (err, items) => {
+          tg.CloudStorage.getItems(Object.values(CLOUD_KEYS), (err, items) => {
             if (err || !items) return;
             let changed = false;
-            if (items[KEYS.PROGRAM]) {
+            const localMeta = this.getLocalMeta();
+            let cloudUpdatedAt = 0;
+            if (items[CLOUD_KEYS.META]) {
               try {
-                const p = JSON.parse(items[KEYS.PROGRAM]);
+                const parsedMeta = JSON.parse(items[CLOUD_KEYS.META]);
+                cloudUpdatedAt = Number(parsedMeta.updatedAt) || 0;
+              } catch (e) {}
+            }
+
+            const cloudIsNewerOrLocalEmpty = (cloudUpdatedAt >= localMeta.updatedAt) || (localMeta.updatedAt === 0);
+
+            if (items[CLOUD_KEYS.PROGRAM] && cloudIsNewerOrLocalEmpty) {
+              try {
+                const p = JSON.parse(items[CLOUD_KEYS.PROGRAM]);
                 if (isValidProgramSchema(p)) { this.writeLocal(KEYS.PROGRAM, p); changed = true; }
               } catch (e) {}
             }
-            if (items[KEYS.HISTORY]) {
+            if (items[CLOUD_KEYS.HISTORY]) {
               try {
-                const cloudHist = JSON.parse(items[KEYS.HISTORY]);
+                const cloudHist = JSON.parse(items[CLOUD_KEYS.HISTORY]);
                 if (Array.isArray(cloudHist)) {
                   const localHist = this.readLocal(KEYS.HISTORY) || [];
                   const map = new Map();
-                  [...localHist, ...cloudHist].forEach(item => { if (item && item.id) map.set(String(item.id), item); });
+                  [...cloudHist, ...localHist].forEach(item => { if (item && item.id) map.set(String(item.id), item); });
                   const merged = Array.from(map.values()).sort((a, b) => Number(b.id) - Number(a.id));
-                  this.writeLocal(KEYS.HISTORY, merged);
-                  changed = true;
+                  if (merged.length !== localHist.length) {
+                    this.writeLocal(KEYS.HISTORY, merged);
+                    changed = true;
+                  }
                 }
               } catch (e) {}
             }
-            if (items[KEYS.SETTINGS]) {
+            if (items[CLOUD_KEYS.SETTINGS] && cloudIsNewerOrLocalEmpty) {
               try {
-                const s = JSON.parse(items[KEYS.SETTINGS]);
+                const s = JSON.parse(items[CLOUD_KEYS.SETTINGS]);
                 if (s && typeof s === 'object') { this.writeLocal(KEYS.SETTINGS, { ...DEFAULT_SETTINGS, ...s }); changed = true; }
               } catch (e) {}
             }
-            if (items[KEYS.ACTIVE]) {
+            if (items[CLOUD_KEYS.ACTIVE] && cloudIsNewerOrLocalEmpty) {
               try {
-                const a = JSON.parse(items[KEYS.ACTIVE]);
+                const a = JSON.parse(items[CLOUD_KEYS.ACTIVE]);
                 if (a && typeof a === 'object') { this.writeLocal(KEYS.ACTIVE, a); changed = true; }
               } catch (e) {}
             }
-            if (changed && typeof onDone === 'function') onDone();
+            if (changed) {
+              this.writeLocal(KEYS.META, { updatedAt: Math.max(localMeta.updatedAt, cloudUpdatedAt, Date.now()) });
+              if (typeof onDone === 'function') onDone();
+            }
           });
         } catch (err) {}
       }
     };
 
+    function migrateLegacyStorageIfNeeded() {
+      if (SafeStore.readLocal(KEYS.PROGRAM) === undefined) {
+        const legProg = SafeStore.readLocal(LEGACY_KEYS.PROGRAM) || SafeStore.readLocal(`gympro_v4_${tgUser.id}_program`);
+        if (legProg !== undefined) SafeStore.writeLocal(KEYS.PROGRAM, legProg);
+      }
+      if (SafeStore.readLocal(KEYS.HISTORY) === undefined) {
+        const legHist = SafeStore.readLocal(LEGACY_KEYS.HISTORY) || SafeStore.readLocal(`gympro_v4_${tgUser.id}_history`);
+        if (Array.isArray(legHist)) SafeStore.writeLocal(KEYS.HISTORY, legHist);
+      }
+      if (SafeStore.readLocal(KEYS.SETTINGS) === undefined) {
+        const legSet = SafeStore.readLocal(LEGACY_KEYS.SETTINGS);
+        if (legSet && typeof legSet === 'object') SafeStore.writeLocal(KEYS.SETTINGS, legSet);
+      }
+      if (SafeStore.readLocal(KEYS.ACTIVE) === undefined) {
+        const legAct = SafeStore.readLocal(LEGACY_KEYS.ACTIVE);
+        if (legAct && typeof legAct === 'object') SafeStore.writeLocal(KEYS.ACTIVE, legAct);
+      }
+    }
+
+    migrateLegacyStorageIfNeeded();
+
     function loadInitialState() {
-      let rawProg = SafeStore.readLocal(KEYS.PROGRAM);
-      if (!rawProg) rawProg = SafeStore.readLocal(`${LEGACY_USER_PREFIX}program`);
+      const rawProg = SafeStore.readLocal(KEYS.PROGRAM);
       const loadedProgram = normalizeProgram(rawProg);
 
       let rawHist = SafeStore.readLocal(KEYS.HISTORY);
-      if (!Array.isArray(rawHist)) {
-        const legacyHist = SafeStore.readLocal(`${LEGACY_USER_PREFIX}history`);
-        rawHist = Array.isArray(legacyHist) ? legacyHist : [];
-      }
+      if (!Array.isArray(rawHist)) rawHist = [];
       rawHist = rawHist.filter(item => item && typeof item === 'object' && Array.isArray(item.exercises));
 
       let rawSettings = SafeStore.readLocal(KEYS.SETTINGS);
@@ -1023,10 +1112,10 @@
     let settings = state.settings;
     let activeState = state.active;
 
-    function persistActiveState() { SafeStore.set(KEYS.ACTIVE, activeState); }
-    function persistSettings() { SafeStore.set(KEYS.SETTINGS, settings); }
-    function persistHistory() { SafeStore.set(KEYS.HISTORY, history); }
-    function persistProgram() { SafeStore.set(KEYS.PROGRAM, program); }
+    function persistActiveState() { SafeStore.set(KEYS.ACTIVE, CLOUD_KEYS.ACTIVE, activeState); }
+    function persistSettings() { SafeStore.set(KEYS.SETTINGS, CLOUD_KEYS.SETTINGS, settings); }
+    function persistHistory() { SafeStore.set(KEYS.HISTORY, CLOUD_KEYS.HISTORY, history); }
+    function persistProgram() { SafeStore.set(KEYS.PROGRAM, CLOUD_KEYS.PROGRAM, program); }
 
     function getHeaderGreetingText() {
       const cg = (settings.customGreeting || '').trim();
@@ -1321,11 +1410,18 @@
       return d;
     }
 
-    function findLastHistoryRecordForExercise(exName) {
+    function findLastHistoryRecordForExercise(exObjOrName) {
+      const targetId = (exObjOrName && typeof exObjOrName === 'object') ? exObjOrName.id : null;
+      const targetName = (exObjOrName && typeof exObjOrName === 'object') ? exObjOrName.name : String(exObjOrName || '');
+
       for (let i = 0; i < history.length; i++) {
         const sess = history[i];
         if (!sess || !Array.isArray(sess.exercises)) continue;
-        const found = sess.exercises.find(item => item && item.name === exName);
+        const found = sess.exercises.find(item => {
+          if (!item) return false;
+          if (targetId && item.exerciseId && item.exerciseId === targetId) return true;
+          return item.name === targetName;
+        });
         if (found) {
           return {
             date: sess.date,
@@ -1339,7 +1435,7 @@
     }
 
     function formatLastRecordText(ex) {
-      const rec = findLastHistoryRecordForExercise(ex.name);
+      const rec = findLastHistoryRecordForExercise(ex);
       if (!rec) return null;
       if (ex.type === 'cardio') return `Atlikta (${rec.minutes || 10} min.)`;
       if (!rec.sets || rec.sets.length === 0) return null;
@@ -1363,8 +1459,14 @@
         if (ex.type === 'strength') {
           const unit = normalizeUnit(ex.unit);
           const d = ensureDraftForExercise(ex);
-          d.sets.forEach(s => { volKg += toKg(s.w, unit) * (parseInt(s.r, 10) || 0); });
-          if (ex.hasDropSet && d.dropSet) volKg += toKg(d.dropSet.w, unit) * (parseInt(d.dropSet.r, 10) || 0);
+          const lastIdx = d.sets.length - 1;
+          d.sets.forEach((s, idx) => {
+            if (!s.done) return;
+            volKg += toKg(s.w, unit) * (parseInt(s.r, 10) || 0);
+            if (ex.hasDropSet && idx === lastIdx && d.dropSet) {
+              volKg += toKg(d.dropSet.w, unit) * (parseInt(d.dropSet.r, 10) || 0);
+            }
+          });
         }
       });
       return Math.round(volKg);
@@ -1431,11 +1533,11 @@
       timerWidget.classList.add('hidden');
     }
 
-    setInterval(syncTimersWithRealClock, 400);
+    setInterval(syncTimersWithRealClock, 500);
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) { syncTimersWithRealClock(); syncWakeLock(); }
+      if (!document.hidden) { syncTimersWithRealClock(); syncWakeLock(); applyTelegramSafeAreas(); }
     });
-    window.addEventListener('focus', syncTimersWithRealClock);
+    window.addEventListener('focus', () => { syncTimersWithRealClock(); applyTelegramSafeAreas(); });
 
     document.getElementById('timer-minus').addEventListener('click', () => {
       if (!activeState.restEndTime) return;
@@ -1589,7 +1691,7 @@
         const exUnit = normalizeUnit(ex.unit);
         const exDraft = ensureDraftForExercise(ex);
         const lastText = formatLastRecordText(ex);
-        const prevRec = findLastHistoryRecordForExercise(ex.name);
+        const prevRec = findLastHistoryRecordForExercise(ex);
         const hasPrevStrength = ex.type === 'strength' && prevRec && prevRec.sets.some(s => s && (s.w !== '' || s.r !== ''));
         const isAllDone = ex.type === 'cardio' ? exDraft.done : exDraft.sets.length > 0 && exDraft.sets.every(s => s.done);
 
@@ -1722,23 +1824,31 @@
       return Math.round(w * (1 + r / 30) * 10) / 10;
     }
 
-    function getPreviousMaxWeight(exerciseName, targetUnit = 'kg') {
-      let maxConverted = 0;
+    function getPreviousBests(exerciseId, exerciseName, targetUnit = 'kg') {
+      let maxWeight = 0;
+      let max1RM = 0;
       history.forEach(sess => {
         (sess.exercises || []).forEach(ex => {
-          if (ex.name === exerciseName && Array.isArray(ex.sets)) {
+          const isMatch = (exerciseId && ex.exerciseId && ex.exerciseId === exerciseId) || (ex.name === exerciseName);
+          if (isMatch && Array.isArray(ex.sets)) {
             const exUnit = normalizeUnit(ex.unit);
             ex.sets.forEach(s => {
               const rawW = parseFloat(s.w) || 0;
+              const reps = parseInt(s.r, 10) || 0;
               if (rawW <= 0) return;
               const wInKg = toKg(rawW, exUnit);
               const wInTarget = targetUnit === 'lb' ? (wInKg / LB_TO_KG) : wInKg;
-              if (wInTarget > maxConverted) maxConverted = wInTarget;
+              if (wInTarget > maxWeight) maxWeight = wInTarget;
+              const est1RM = calcEpley1RM(wInTarget, reps);
+              if (est1RM > max1RM) max1RM = est1RM;
             });
           }
         });
       });
-      return Math.round(maxConverted * 10) / 10;
+      return {
+        maxWeight: Math.round(maxWeight * 10) / 10,
+        max1RM: Math.round(max1RM * 10) / 10
+      };
     }
 
     document.getElementById('finish-workout-btn').addEventListener('click', () => {
@@ -1762,46 +1872,52 @@
         if (ex.type === 'cardio') {
           if (d.done) {
             totalSetsCompleted += 1;
-            compactExercises.push({ name: ex.name, type: 'cardio', minutes: String(d.minutes || '10'), sets: [] });
+            compactExercises.push({ exerciseId: ex.id, name: ex.name, type: 'cardio', minutes: String(d.minutes || '10'), sets: [] });
           }
         } else {
           const exUnit = normalizeUnit(ex.unit);
           const validSets = [];
           let exMaxW = 0;
+          let exMax1RM = 0;
+          const lastIdx = d.sets.length - 1;
 
-          d.sets.forEach(s => {
-            if (s.w !== '' || s.r !== '' || s.done) {
+          d.sets.forEach((s, idx) => {
+            if (s.done) {
               const wVal = s.w !== '' ? String(s.w) : '0';
               const rVal = s.r !== '' ? String(s.r) : '0';
               validSets.push({ w: wVal, r: rVal, drop: false });
               const wNum = parseFloat(wVal) || 0;
               const rNum = parseInt(rVal, 10) || 0;
               if (wNum > exMaxW) exMaxW = wNum;
+              const est1RM = calcEpley1RM(wNum, rNum);
+              if (est1RM > exMax1RM) exMax1RM = est1RM;
               totalVolumeKg += toKg(wNum, exUnit) * rNum;
               totalSetsCompleted += 1;
+
+              if (ex.hasDropSet && idx === lastIdx && d.dropSet && (d.dropSet.w !== '' || d.dropSet.r !== '')) {
+                const dw = String(d.dropSet.w || '0');
+                const dr = String(d.dropSet.r || '0');
+                validSets.push({ w: dw, r: dr, drop: true });
+                totalVolumeKg += toKg(dw, exUnit) * (parseInt(dr, 10) || 0);
+                totalSetsCompleted += 1;
+              }
             }
           });
 
-          if (ex.hasDropSet && d.dropSet && (d.dropSet.w !== '' || d.dropSet.r !== '')) {
-            const dw = String(d.dropSet.w || '0');
-            const dr = String(d.dropSet.r || '0');
-            validSets.push({ w: dw, r: dr, drop: true });
-            totalVolumeKg += toKg(dw, exUnit) * (parseInt(dr, 10) || 0);
-            totalSetsCompleted += 1;
-          }
-
           if (validSets.length > 0) {
-            const prevBestW = getPreviousMaxWeight(ex.name, exUnit);
-            if (exMaxW > 0 && prevBestW > 0 && exMaxW > prevBestW) {
-              newPRsAchieved.push(`${ex.name}: ${exMaxW} ${exUnit} (buvo ${prevBestW} ${exUnit})`);
+            const prevBests = getPreviousBests(ex.id, ex.name, exUnit);
+            if (exMaxW > 0 && prevBests.maxWeight > 0 && exMaxW > prevBests.maxWeight) {
+              newPRsAchieved.push(`${ex.name}: ${exMaxW} ${exUnit} svorio PR (buvo ${prevBests.maxWeight} ${exUnit})`);
+            } else if (exMax1RM > 0 && prevBests.max1RM > 0 && exMax1RM > prevBests.max1RM) {
+              newPRsAchieved.push(`${ex.name}: ${exMax1RM} ${exUnit} 1RM PR (buvo ${prevBests.max1RM} ${exUnit})`);
             }
-            compactExercises.push({ name: ex.name, type: 'strength', unit: exUnit, sets: validSets });
+            compactExercises.push({ exerciseId: ex.id, name: ex.name, type: 'strength', unit: exUnit, sets: validSets });
           }
         }
       });
 
       if (compactExercises.length === 0) {
-        showToast('Pažymėkite bent vieną seriją arba įveskite svorį prieš baigiant!');
+        showToast('Pažymėkite (✓) bent vieną atliktą seriją prieš baigiant treniruotę!');
         return;
       }
 
@@ -1844,36 +1960,37 @@
     }
 
     function getAllStrengthExercises() {
-      const names = new Set();
-      program.forEach(d => d.exercises.forEach(ex => { if (ex.type === 'strength') names.add(ex.name); }));
-      history.forEach(sess => (sess.exercises || []).forEach(ex => {
-        if (ex.type !== 'cardio' && Array.isArray(ex.sets) && ex.sets.length > 0) names.add(ex.name);
+      const map = new Map();
+      program.forEach(d => d.exercises.forEach(ex => {
+        if (ex.type === 'strength') {
+          map.set(ex.id, { key: ex.id, id: ex.id, name: ex.name, unit: normalizeUnit(ex.unit) });
+        }
       }));
-      return Array.from(names);
-    }
-
-    function getCurrentUnitForExerciseName(exName) {
-      for (const d of program) {
-        const found = d.exercises.find(ex => ex.name === exName && ex.type === 'strength');
-        if (found) return normalizeUnit(found.unit);
-      }
-      for (const sess of history) {
-        const found = (sess.exercises || []).find(ex => ex.name === exName && ex.type !== 'cardio');
-        if (found) return normalizeUnit(found.unit);
-      }
-      return 'kg';
+      history.forEach(sess => (sess.exercises || []).forEach(ex => {
+        if (ex.type !== 'cardio' && Array.isArray(ex.sets) && ex.sets.length > 0) {
+          if (ex.exerciseId && map.has(ex.exerciseId)) return;
+          const existingByName = Array.from(map.values()).find(item => item.name === ex.name);
+          if (!existingByName) {
+            const fallbackKey = ex.exerciseId || `name:${ex.name}`;
+            if (!map.has(fallbackKey)) {
+              map.set(fallbackKey, { key: fallbackKey, id: ex.exerciseId || null, name: ex.name, unit: normalizeUnit(ex.unit) });
+            }
+          }
+        }
+      }));
+      return Array.from(map.values());
     }
 
     function renderProgressView() {
       const select = document.getElementById('progress-exercise-select');
-      const allNames = getAllStrengthExercises();
+      const allItems = getAllStrengthExercises();
       const prevSelected = select.value;
       const chartBox = document.getElementById('progress-chart-box');
       const detailBox = document.getElementById('progress-point-detail');
       const logsBox = document.getElementById('progress-exercise-logs');
       detailBox.classList.add('hidden');
 
-      if (allNames.length === 0) {
+      if (allItems.length === 0) {
         select.innerHTML = `<option value="">Nėra jėgos pratimų</option>`;
         document.getElementById('pr-max-weight').textContent = '—';
         document.getElementById('pr-est-1rm').textContent = '—';
@@ -1883,16 +2000,17 @@
         return;
       }
 
-      select.innerHTML = allNames.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
-      if (prevSelected && allNames.includes(prevSelected)) select.value = prevSelected;
+      select.innerHTML = allItems.map(item => `<option value="${escapeHtml(item.key)}">${escapeHtml(item.name)}</option>`).join('');
+      if (prevSelected && allItems.some(i => i.key === prevSelected)) select.value = prevSelected;
 
-      const selectedName = select.value;
-      const displayUnit = getCurrentUnitForExerciseName(selectedName);
+      const selectedItem = allItems.find(i => i.key === select.value) || allItems[0];
+      const displayUnit = selectedItem.unit || 'kg';
       const dataPoints = [];
 
       [...history].reverse().forEach(sess => {
         (sess.exercises || []).forEach(ex => {
-          if (ex.name === selectedName && Array.isArray(ex.sets) && ex.sets.length > 0) {
+          const isMatch = (selectedItem.id && ex.exerciseId && ex.exerciseId === selectedItem.id) || (ex.name === selectedItem.name);
+          if (isMatch && Array.isArray(ex.sets) && ex.sets.length > 0) {
             const recUnit = normalizeUnit(ex.unit);
             let maxW = 0, best1RM = 0, exTonnageKg = 0;
             ex.sets.forEach(s => {
@@ -2613,7 +2731,10 @@
         } else if (parsed && typeof parsed === 'object' && isValidProgramSchema(parsed.program)) {
           program = normalizeProgram(parsed.program);
           persistProgram();
-          if (Array.isArray(parsed.history)) { history = parsed.history; persistHistory(); }
+          if (Array.isArray(parsed.history)) {
+            history = parsed.history.filter(item => item && typeof item === 'object' && Array.isArray(item.exercises));
+            persistHistory();
+          }
           if (parsed.settings && typeof parsed.settings === 'object') {
             settings = { ...DEFAULT_SETTINGS, ...parsed.settings };
             persistSettings();
@@ -2676,7 +2797,7 @@
       if (fillBtn) {
         const exId = fillBtn.dataset.fillPrevEx;
         const exName = fillBtn.dataset.fillPrevName;
-        const prev = findLastHistoryRecordForExercise(exName);
+        const prev = findLastHistoryRecordForExercise({ id: exId, name: exName });
         if (prev && Array.isArray(prev.sets) && activeState.draft[exId] && Array.isArray(activeState.draft[exId].sets)) {
           const normalSets = prev.sets.filter(s => !s.drop);
           const dropSet = prev.sets.find(s => s.drop);
@@ -2688,7 +2809,7 @@
             activeState.draft[exId].dropSet.r = dropSet.r || '';
           }
           persistActiveState(); haptic('medium'); renderWorkoutView();
-          showToast('Praėjusios treniruotės svoriai užpildyti!');
+          showToast('Praėjusios treniruotės svoriai užpildyti (nepamirškite pažymėti ✓)!');
         }
         return;
       }
