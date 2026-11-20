@@ -1,4 +1,4 @@
-name: Automatinis version.json atnaujinimas
+name: Automatinis versijavimas, Backup ir Release
 
 on:
   push:
@@ -12,13 +12,26 @@ permissions:
   contents: write
 
 jobs:
-  update-version:
+  update-backup-release:
     runs-on: ubuntu-latest
     steps:
       - name: Atsisiųsti repozitorijos failus
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Sukurti seno index.html atsarginę kopiją (Backup)
+        run: |
+          mkdir -p backups
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M")
+          if git cat-file -e HEAD~1:index.html 2>/dev/null; then
+            OLD_VER=$(git show HEAD~1:version.json 2>/dev/null | jq -r '.version // "old"')
+            git show HEAD~1:index.html > "backups/index_v${OLD_VER}_${TIMESTAMP}.html"
+            echo "Išsaugota atsarginė kopija: backups/index_v${OLD_VER}_${TIMESTAMP}.html"
+          fi
 
       - name: Ištraukti versiją ir pakeitimus iš index.html į version.json
+        id: extract
         run: |
           node -e '
             const fs = require("fs");
@@ -26,21 +39,29 @@ jobs:
             const verMatch = html.match(/const\s+APP_VERSION\s*=\s*["'\'']([^"'\'']+)["'\'']/);
             const notesMatch = html.match(/\/\/\s*RELEASE_NOTES:\s*(.+)/);
             
+            const version = verMatch ? verMatch[1].trim() : new Date().toISOString().slice(0,16).replace("T", "_");
+            const notes = notesMatch ? notesMatch[1].trim() : "Nauji patobulinimai ir klaidų taisymai.";
+            
             if (verMatch) {
-              const data = {
-                version: verMatch[1].trim(),
-                notes: notesMatch ? notesMatch[1].trim() : "Nauji patobulinimai ir klaidų taisymai."
-              };
+              const data = { version, notes };
               fs.writeFileSync("version.json", JSON.stringify(data, null, 2) + "\n");
               console.log("Sugeneruotas version.json:", data);
-            } else {
-              console.log("APP_VERSION nerastas");
             }
+            
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${version}\nnotes=${notes}\n`);
           '
 
-      - name: Išsaugoti atnaujintą version.json
+      - name: Išsaugoti version.json ir backups aplanką
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add version.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update version.json" && git push)
+          git add version.json backups/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update v${{ steps.extract.outputs.version }} ir backup [skip ci]" && git push)
+
+      - name: Sukurti GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.extract.outputs.version }}
+          name: Versija ${{ steps.extract.outputs.version }}
+          body: ${{ steps.extract.outputs.notes }}
+          files: index.html
