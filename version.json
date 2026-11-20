@@ -1,4 +1,4 @@
 {
-  "version": "1.14",
-  "notes": "Sutvarkytas pradinis paleidimas ir pridėtas klaidų detektorius, jei failas įkeliamas nepilnai."
+  "version": "1.15",
+  "notes": "Sutvarkytas viršutinės juostos atitraukimas (fullscreen / darbalaukio nuoroda), į istoriją įtraukiamos tik pažymėtos serijos, pridėtas 1RM rekordų sekimas, pratimų ID susiejimas ir saugesnė sinchronizacija."
 }
