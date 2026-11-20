@@ -1,4 +1,4 @@
 {
-  "version": "1.16",
-  "notes": "Sutvarkytas viršutinės juostos atitraukimas (fullscreen / darbalaukio nuoroda), į istoriją įtraukiamos tik pažymėtos serijos, pridėtas 1RM rekordų sekimas, pratimų ID susiejimas ir saugesnė sinchronizacija."
+  "version": "1.17",
+  "notes": "Saugesnė sinchronizacija (debesies kopija gabalais, senų gabalų valymas), lietuviško kablelio svoriuose palaikymas, XSS apsauga, pratimo pervadinimo klausimas, Telegram braukimo/uždarymo apsauga, drop-set ir 1RM taisymai."
 }
